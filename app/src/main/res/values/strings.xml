@@ -1,0 +1,19 @@
+<resources>
+    <string name="app_name">Cinemeteor</string>
+    <string name="new_user">New User ?</string>
+    <string name="old_user">Already Have an account ?</string>
+    <string name="forget_password">Forget Password ?</string>
+    <string name="login">Login</string>
+    <string name="sign_up">Sign Up</string>
+    <string name="email">Email</string>
+    <string name="password">Password</string>
+    <string name="confirm_password">Confirm Password</string>
+    <string name="welcome">Welcome to</string>
+    <string name="password_not_match">Your password not matched</string>
+    <string name="check_email_inbox">check you email inbox</string>
+    <string name="login_failed">Login Failed</string>
+    <string name="user_not_found">User not found</string>
+    <string name="verification_required">Verify you email first</string>
+    <string name="logout">Logout</string>
+    <string name="settings">Settings</string>
+</resources>
