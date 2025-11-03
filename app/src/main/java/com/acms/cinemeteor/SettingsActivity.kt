@@ -7,20 +7,41 @@ import android.content.SharedPreferences
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
-import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Divider
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.RadioButton
+import androidx.compose.material3.RadioButtonDefaults
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Shapes
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -31,24 +52,22 @@ import androidx.compose.ui.window.Dialog
 import androidx.core.os.LocaleListCompat
 import com.acms.cinemeteor.ui.theme.CinemeteorTheme
 import com.google.firebase.Firebase
-import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.auth
 
 class SettingsActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
 
         val prefs = getSharedPreferences("settings", Context.MODE_PRIVATE)
-        val langCode = prefs.getString("lang", "system")
-        val localeList = when (langCode) {
-            "en" -> LocaleListCompat.forLanguageTags("en")
-            "ar" -> LocaleListCompat.forLanguageTags("ar")
-            else -> LocaleListCompat.getEmptyLocaleList()
-        }
+        val langCode = prefs.getString("lang", "en")
+        val localeList = if (langCode == "ar")
+            LocaleListCompat.forLanguageTags("ar")
+        else
+            LocaleListCompat.forLanguageTags("en")
+
+
         AppCompatDelegate.setApplicationLocales(localeList)
         val mode = prefs.getInt("mode", AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM)
         AppCompatDelegate.setDefaultNightMode(mode)
-         Log.d("STARTUP_DEBUG", "onCreate: lang=${langCode}, mode=$mode, AppCompat default=${AppCompatDelegate.getDefaultNightMode()}")
-
 
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
@@ -78,7 +97,7 @@ private fun onLogoutClick(context: Context) {
 @Composable
 fun SettingsDesign(modifier: Modifier = Modifier) {
     val context = LocalContext.current
-    var showDialog by remember { mutableStateOf(false) }
+    var showModeDialog by remember { mutableStateOf(false) }
     var showLangDialog by remember { mutableStateOf(false) }
 
     if (showLangDialog) {
@@ -87,13 +106,10 @@ fun SettingsDesign(modifier: Modifier = Modifier) {
             onDismiss = { showLangDialog = false }
         )
     }
-
-
-
-    if (showDialog) {
+    if (showModeDialog) {
         ModeSetupDialog(
             prefs = context.getSharedPreferences("settings", Context.MODE_PRIVATE),
-            onDismiss = { showDialog = false }
+            onDismiss = { showModeDialog = false }
         )
     }
 
@@ -102,51 +118,87 @@ fun SettingsDesign(modifier: Modifier = Modifier) {
         horizontalAlignment = Alignment.Start,
         modifier = modifier
             .fillMaxSize()
-            .padding(32.dp)
+            .padding(12.dp)
     ) {
 
-        TextButton(onClick = { showDialog = true }) {
-            Image(
-                painter = painterResource(R.drawable.mode),
-                contentDescription = "Theme"
-            )
-            Spacer(modifier = Modifier.width(8.dp))
-            Text(text = "App Theme")
-        }
-
-        Divider(
-            color = Color.LightGray,
-            thickness = 1.dp,
+        TextButton(
+            onClick = { showModeDialog = true },
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(vertical = 16.dp)
-        )
+                .align(alignment = Alignment.Start),
+            shape = RoundedCornerShape(8.dp)
 
-        TextButton(onClick = {showLangDialog = true}) {
-            Image(
-                painter = painterResource(R.drawable.language),
-                contentDescription = "Language"
-            )
-            Spacer(modifier = Modifier.width(8.dp))
-            Text(text = "App Language")
-        }
-
-        Divider(
-            color = Color.LightGray,
-            thickness = 1.dp,
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(vertical = 16.dp)
-        )
-
-        Button(
-            onClick = { onLogoutClick(context) },
-            modifier = Modifier.fillMaxWidth()
         ) {
-            Text(
-                text = stringResource(R.string.logout),
-                fontSize = 20.sp
-            )
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.Start,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Image(
+                    painter = painterResource(R.drawable.mode),
+                    contentDescription = "Theme"
+                )
+//            Spacer(modifier = Modifier.width(8.dp))
+                Text(text = stringResource(R.string.theme))
+            }
+        }
+
+        Divider(
+            color = Color.LightGray,
+            thickness = 1.dp,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(vertical = 8.dp)
+        )
+
+        TextButton(
+            onClick = { showLangDialog = true },
+            modifier = Modifier
+                .fillMaxWidth()
+                .align(alignment = Alignment.Start)
+        ) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.Start,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Image(
+                    painter = painterResource(R.drawable.language),
+                    contentDescription = stringResource(R.string.language)
+                )
+                Text(text = stringResource(R.string.language))
+            }
+        }
+
+        Divider(
+            color = Color.LightGray,
+            thickness = 1.dp,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(vertical = 8.dp)
+        )
+
+        TextButton(
+            onClick = { onLogoutClick(context) },
+            modifier = Modifier
+                .fillMaxWidth()
+                .align(alignment = Alignment.Start)
+        ) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.Start,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Image(
+                    painter = painterResource(R.drawable.settings),
+                    contentDescription = stringResource(R.string.logout)
+                )
+
+                Text(
+                    text = stringResource(R.string.logout),
+                    fontSize = 20.sp
+                )
+            }
         }
     }
 }
@@ -203,7 +255,7 @@ fun ModeSetupDialog(
                     horizontalArrangement = Arrangement.End
                 ) {
                     TextButton(onClick = { onDismiss() }) {
-                        Text(text = stringResource(id = R.string.cancel), color = Color(0xFF2196F3))
+                        Text(text = stringResource(id = R.string.cancel), color = Color(0xFFE21220))
                     }
                     Spacer(modifier = Modifier.width(8.dp))
                     TextButton(onClick = {
@@ -214,7 +266,7 @@ fun ModeSetupDialog(
 
                         onDismiss()
                     }) {
-                        Text(text = stringResource(id = R.string.ok), color = Color(0xFF2196F3))
+                        Text(text = stringResource(id = R.string.ok), color = Color(0xFFE21220))
                     }
                 }
             }
@@ -230,7 +282,7 @@ fun LanguageSetupDialog(
 ) {
     val context = LocalContext.current
     val editor = prefs.edit()
-    val currentLang = prefs.getString("lang", "system") ?: "system"
+    val currentLang = prefs.getString("lang", "en") ?: "en"
 
     var selectedLang by remember { mutableStateOf(currentLang) }
 
@@ -254,11 +306,6 @@ fun LanguageSetupDialog(
 
                 Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
                     RadioButtonWithText(
-                        text = stringResource(R.string.system_default),
-                        selected = selectedLang == "system"
-                    ) { selectedLang = "system" }
-
-                    RadioButtonWithText(
                         text = "English",
                         selected = selectedLang == "en"
                     ) { selectedLang = "en" }
@@ -276,35 +323,28 @@ fun LanguageSetupDialog(
                     horizontalArrangement = Arrangement.End
                 ) {
                     TextButton(onClick = { onDismiss() }) {
-                        Text(text = stringResource(id = R.string.cancel), color = Color(0xFF2196F3))
+                        Text(text = stringResource(id = R.string.cancel), color = Color(0xFFE21220))
                     }
                     Spacer(modifier = Modifier.width(8.dp))
                     TextButton(onClick = {
-                        Log.d("LANG_DEBUG", "Selected lang before save: $selectedLang")
                         editor.putString("lang", selectedLang).apply()
 
-                        val localeList = when (selectedLang) {
-                            "en" -> LocaleListCompat.forLanguageTags("en")
-                            "ar" -> LocaleListCompat.forLanguageTags("ar")
-                            else -> LocaleListCompat.getEmptyLocaleList()
+                        LanguageChangeHelper().changeLanguage(context, selectedLang)
+
+                        Handler(Looper.getMainLooper()).post {
+                            (context as? Activity)?.recreate()
                         }
-
-                        AppCompatDelegate.setApplicationLocales(localeList)
-                        (context as? Activity)?.recreate()
-                        Log.d("LANG_DEBUG", "setApplicationLocales called: $selectedLang")
-                        Log.d("LANG_DEBUG", "recreate() after setApplicationLocales")
-
 
                         onDismiss()
                     }) {
-                        Text(text = stringResource(id = R.string.ok), color = Color(0xFF2196F3))
+                        Text(text = stringResource(id = R.string.ok), color = Color(0xFFE21220))
                     }
+
                 }
             }
         }
     }
 }
-
 
 
 @Composable
@@ -323,7 +363,7 @@ fun RadioButtonWithText(
             selected = selected,
             onClick = onSelect,
             colors = RadioButtonDefaults.colors(
-                selectedColor = Color(0xFF2196F3),
+                selectedColor = Color(0xFFE21220),
                 unselectedColor = Color.Gray
             )
         )
