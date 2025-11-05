@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -27,6 +28,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.BlurredEdgeTreatment
+import androidx.compose.ui.draw.blur
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
@@ -108,7 +111,12 @@ fun LoginDesign(modifier: Modifier = Modifier) {
         Image(
             painter = painterResource(R.drawable.background_screen),
             contentDescription = "Background",
-            modifier = Modifier.fillMaxSize(),
+            modifier = Modifier.fillMaxSize()
+                .blur(
+                    radiusX = 4.dp,
+                    radiusY = 4.dp,
+                    edgeTreatment = BlurredEdgeTreatment(RoundedCornerShape(0.dp))
+                ),
             contentScale = ContentScale.Crop
         )
         Column(

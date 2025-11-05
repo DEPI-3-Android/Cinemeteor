@@ -20,6 +20,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -41,8 +42,10 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
@@ -114,11 +117,11 @@ fun SettingsDesign(modifier: Modifier = Modifier) {
     }
 
     Column(
-        verticalArrangement = Arrangement.Center,
+        verticalArrangement = Arrangement.Top,
         horizontalAlignment = Alignment.Start,
         modifier = modifier
             .fillMaxSize()
-            .padding(12.dp)
+            .padding(horizontal = 12.dp, vertical = 32.dp)
     ) {
 
         TextButton(
@@ -126,80 +129,146 @@ fun SettingsDesign(modifier: Modifier = Modifier) {
             modifier = Modifier
                 .fillMaxWidth()
                 .align(alignment = Alignment.Start),
-            shape = RoundedCornerShape(8.dp)
+            shape = RoundedCornerShape(0.dp)
 
         ) {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.Start,
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier
+                    .padding(vertical = 8.dp)
+                    .fillMaxWidth()
             ) {
                 Image(
                     painter = painterResource(R.drawable.mode),
-                    contentDescription = "Theme"
+                    contentDescription = "Theme",
+                    colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.tertiary),
+                    modifier = Modifier.size(30.dp)
                 )
-//            Spacer(modifier = Modifier.width(8.dp))
-                Text(text = stringResource(R.string.theme))
+                Text(
+                    text = stringResource(R.string.theme),
+                    fontSize = 18.sp,
+                    color = MaterialTheme.colorScheme.secondary,
+                    modifier = Modifier.padding(start = 8.dp)
+                )
             }
         }
 
         Divider(
-            color = Color.LightGray,
+            color = Color.Transparent,
             thickness = 1.dp,
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(vertical = 8.dp)
         )
 
         TextButton(
             onClick = { showLangDialog = true },
             modifier = Modifier
                 .fillMaxWidth()
-                .align(alignment = Alignment.Start)
+                .align(alignment = Alignment.Start),
+            shape = RoundedCornerShape(0.dp)
         ) {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.Start,
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier
+                    .padding(vertical = 8.dp)
+                    .fillMaxWidth()
             ) {
                 Image(
                     painter = painterResource(R.drawable.language),
-                    contentDescription = stringResource(R.string.language)
+                    contentDescription = stringResource(R.string.language),
+                    colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.tertiary),
+                    modifier = Modifier.size(30.dp)
                 )
-                Text(text = stringResource(R.string.language))
+                Text(
+                    text = stringResource(R.string.language),
+                    fontSize = 18.sp,
+                    color = MaterialTheme.colorScheme.secondary,
+                    modifier = Modifier.padding(start = 8.dp)
+                )
             }
         }
 
         Divider(
-            color = Color.LightGray,
+            color = Color.Transparent,
             thickness = 1.dp,
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(vertical = 8.dp)
+                .padding(vertical = 0.dp)
+        )
+
+        TextButton(
+            onClick = { },
+            modifier = Modifier
+
+                .fillMaxWidth()
+                .align(alignment = Alignment.Start),
+            shape = RoundedCornerShape(0.dp)
+        ) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.Start,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 8.dp)
+            ) {
+                Image(
+                    painter = painterResource(R.drawable.info),
+                    contentDescription = stringResource(R.string.about),
+                    colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.tertiary),
+                    modifier = Modifier.size(30.dp)
+                )
+
+                Text(
+                    text = stringResource(R.string.about),
+                    fontSize = 18.sp,
+                    color = MaterialTheme.colorScheme.secondary,
+                    modifier = Modifier.padding(start = 8.dp)
+                )
+            }
+        }
+
+        Divider(
+            color = Color.Transparent,
+            thickness = 2.dp,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(vertical = 0.dp)
         )
 
         TextButton(
             onClick = { onLogoutClick(context) },
             modifier = Modifier
+
                 .fillMaxWidth()
-                .align(alignment = Alignment.Start)
+                .align(alignment = Alignment.Start),
+            shape = RoundedCornerShape(0.dp)
         ) {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.Start,
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier
+                    .padding(vertical = 8.dp)
+                    .fillMaxWidth()
             ) {
                 Image(
-                    painter = painterResource(R.drawable.settings),
-                    contentDescription = stringResource(R.string.logout)
+                    painter = painterResource(R.drawable.logout),
+                    contentDescription = stringResource(R.string.logout),
+                    colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.tertiary),
+                    modifier = Modifier.size(30.dp)
                 )
 
                 Text(
                     text = stringResource(R.string.logout),
-                    fontSize = 20.sp
+                    fontSize = 18.sp,
+                    color = MaterialTheme.colorScheme.secondary,
+                    modifier = Modifier.padding(start = 8.dp)
                 )
             }
         }
+
+
     }
 }
 
