@@ -26,4 +26,9 @@
     <string name="language">Language</string>
     <string name="choose_language">Choose language</string>
     <string name="about">About us</string>
+    <string name="notifications">Notifications</string>
+    <string name="search_movies">Search Movies...</string>
+    <string name="trending_now">Trending Now</string>
+    <string name="movie_title">Movie </string>
+    <string name="movie_rating">⭐ </string>
 </resources>

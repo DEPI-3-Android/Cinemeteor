@@ -6,7 +6,6 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.appcompat.app.AppCompatDelegate
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -14,6 +13,10 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -21,30 +24,39 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.core.os.LocaleListCompat
+import com.acms.cinemeteor.OnBoardingScreen.OnboardingScreen
 import com.acms.cinemeteor.ui.theme.CinemeteorTheme
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        val prefs = getSharedPreferences("settings", Context.MODE_PRIVATE)
-        val langCode = prefs.getString("lang", "system")
-        val localeList = when (langCode) {
-            "en" -> LocaleListCompat.forLanguageTags("en")
-            "ar" -> LocaleListCompat.forLanguageTags("ar")
-            else -> LocaleListCompat.getEmptyLocaleList()
-        }
-        AppCompatDelegate.setApplicationLocales(localeList)
-        val mode = prefs.getInt("mode", AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM)
-        AppCompatDelegate.setDefaultNightMode(mode)
-
+        val sharedPref = getSharedPreferences("app_prefs", Context.MODE_PRIVATE)
+        val onboardingShown = sharedPref.getBoolean("onboarding_show", false)
         enableEdgeToEdge()
         setContent {
             CinemeteorTheme {
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    Greeting(modifier = Modifier.padding(innerPadding))
+
+//                    var showSplash by remember { mutableStateOf(true) }
+                    var showOnboarding by rememberSaveable { mutableStateOf(!onboardingShown) }
+
+                    if (showOnboarding) {
+                        OnboardingScreen(
+                            modifier = Modifier.padding(innerPadding),
+                            onFinish = {
+                                sharedPref.edit().putBoolean("onboarding_show", true).apply()
+                                showOnboarding = false
+                            }
+
+                        )
+                    } else {
+                        MoviesHomeScreen()
+                    }
+
+
                 }
+
             }
         }
     }
@@ -63,7 +75,9 @@ fun Greeting(modifier: Modifier = Modifier) {
             fontSize = 32.sp
         )
         Button(
-            modifier = Modifier.align(Alignment.TopEnd).padding(top = 64.dp , end = 16.dp),
+            modifier = Modifier
+                .align(Alignment.TopEnd)
+                .padding(top = 64.dp, end = 16.dp),
             onClick = {
                 val I = Intent(context, SettingsActivity::class.java)
                 context.startActivity(I)
@@ -73,3 +87,4 @@ fun Greeting(modifier: Modifier = Modifier) {
         }
     }
 }
+

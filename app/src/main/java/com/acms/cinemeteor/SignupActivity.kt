@@ -8,7 +8,6 @@ import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.appcompat.app.AppCompatDelegate
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
@@ -34,7 +33,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.core.os.LocaleListCompat
 import com.acms.cinemeteor.ui.theme.CinemeteorTheme
 import com.google.firebase.Firebase
 import com.google.firebase.auth.FirebaseAuth
@@ -44,18 +42,6 @@ class SignupActivity : ComponentActivity() {
     private lateinit var auth: FirebaseAuth
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
-        val prefs = getSharedPreferences("settings", Context.MODE_PRIVATE)
-        val langCode = prefs.getString("lang", "system")
-        val localeList = when (langCode) {
-            "en" -> LocaleListCompat.forLanguageTags("en")
-            "ar" -> LocaleListCompat.forLanguageTags("ar")
-            else -> LocaleListCompat.getEmptyLocaleList()
-        }
-        AppCompatDelegate.setApplicationLocales(localeList)
-        val mode = prefs.getInt("mode", AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM)
-        AppCompatDelegate.setDefaultNightMode(mode)
-
         enableEdgeToEdge()
         setContent {
             CinemeteorTheme {
