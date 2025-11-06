@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Cinemeteor</string>
+    <string name="new_user">مستخدم جديد؟</string>
+    <string name="old_user">لديك حساب بالفعل؟</string>
+    <string name="forget_password">نسيت كلمة المرور؟</string>
+    <string name="login">تسجيل الدخول</string>
+    <string name="sign_up">إنشاء حساب</string>
+    <string name="email">البريد الإلكتروني</string>
+    <string name="password">كلمة المرور</string>
+    <string name="confirm_password">تأكيد كلمة المرور</string>
+    <string name="welcome">مرحبا بك</string>
+    <string name="password_not_match">كلمتا المرور غير متطابقتين</string>
+    <string name="check_email_inbox">تفقد صندوق بريدك الإلكتروني</string>
+    <string name="login_failed">فشل التسجيل</string>
+    <string name="user_not_found">المستخدم غير موجود</string>
+    <string name="verification_required">قم بتفعييل بريدك اولا</string>
+    <string name="logout">تسجيل الخروج</string>
+    <string name="settings">الإعدادت</string>
+    <string name="system_default">الوضع الافتراضي للنظام</string>
+    <string name="light">فاتح</string>
+    <string name="dark">مظلم</string>
+    <string name="choose_theme">اختر سمه</string>
+    <string name="ok">موافق</string>
+    <string name="cancel">الغاء</string>
+    <string name="theme">السمة</string>
+    <string name="language">اللغة</string>
+    <string name="choose_language">اختر اللغة</string>
+    <string name="about">عن المطورين</string>
+</resources>
