@@ -3,6 +3,7 @@ package com.acms.cinemeteor
 import android.content.Intent
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
@@ -11,6 +12,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material3.*
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -23,18 +25,34 @@ import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.AsyncImage
+import com.acms.cinemeteor.models.Movie
+import com.acms.cinemeteor.utils.ImageUtils
+import com.acms.cinemeteor.viewmodel.MovieViewModel
+import kotlinx.coroutines.delay
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun MoviesHomeScreen() {
+fun MoviesHomeScreen(
+    viewModel: MovieViewModel = viewModel()
+) {
     val background = R.drawable.background
     val context = LocalContext.current
-
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    
+    // Debounced search
+    var searchText by remember { mutableStateOf("") }
+    LaunchedEffect(searchText) {
+        delay(500) // Wait 500ms after user stops typing
+        viewModel.searchMovies(searchText)
+    }
 
     Box(modifier = Modifier.fillMaxSize()) {
 
@@ -55,7 +73,6 @@ fun MoviesHomeScreen() {
             topBar = {
                 CenterAlignedTopAppBar(
                     navigationIcon = {
-                        val context = LocalContext.current
                         IconButton(onClick = {
                             val intent = Intent(context, SettingsActivity::class.java)
                             context.startActivity(intent)
@@ -87,72 +104,256 @@ fun MoviesHomeScreen() {
                         containerColor = Color.Transparent
                     )
                 )
-            }
-            ,
+            },
             containerColor = Color.Transparent
         ) { padding ->
-            LazyColumn(
-                contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
-                verticalArrangement = Arrangement.spacedBy(6.dp),
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(padding)
-            ) {
-                item {
-                    var text by remember { mutableStateOf("") }
-
-                    OutlinedTextField(
-                        value = text,
-                        onValueChange = { text = it },
-                        placeholder = { Text(stringResource(R.string.search_movies), color = Color.Gray) },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .background(Color.Black.copy(alpha = 0.3f), RoundedCornerShape(12.dp)),
-                        colors = OutlinedTextFieldDefaults.colors(
-                            focusedBorderColor = Color.White,
-                            unfocusedBorderColor = Color.Transparent,
-                            cursorColor = Color.White
-                        )
-                    )
-                    Spacer(modifier = Modifier.height(20.dp))
-                }
-
-                item {
-                    Text(
-                        text = stringResource(R.string.trending_now),
-                        color = Color.White,
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 20.sp
-                    )
-                    Spacer(modifier = Modifier.height(10.dp))
-                    LazyRow(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                        items(10) { index ->
-                            MoviePosterItem(
-                                imageUrl = "https://image.tmdb.org/t/p/w500/8YFL5QQVPy3AgrEQxNYVSgiPEbe.jpg",
-                                title = stringResource(R.string.movie_title,"$index")
+            // Show initial loading state only when everything is empty and loading
+            if (uiState.isLoading && 
+                uiState.trendingMovies.isEmpty() && 
+                uiState.popularMovies.isEmpty() && 
+                uiState.searchResults.isEmpty() &&
+                uiState.searchQuery.isBlank()) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(padding),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        CircularProgressIndicator(color = Color.White)
+                        if (uiState.error != null) {
+                            Spacer(modifier = Modifier.height(16.dp))
+                            Text(
+                                text = uiState.error ?: "Error",
+                                color = Color.Red,
+                                fontSize = 14.sp,
+                                textAlign = TextAlign.Center,
+                                modifier = Modifier.padding(horizontal = 32.dp)
                             )
                         }
                     }
-                    Spacer(modifier = Modifier.height(25.dp))
                 }
-
-                items(10) {index ->
-                    Row(
-                        horizontalArrangement = Arrangement.spacedBy(12.dp),
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        MovieGridItem(
-                            imageUrl = "https://image.tmdb.org/t/p/w500/rSPw7tgCH9c6NqICZef4kZjFOQ5.jpg",
-                            title = stringResource(R.string.movie_title,"A$index"),
-                            rating = 8.5
-                        )
-//                        MovieGridItem(
-//                            imageUrl = "https://image.tmdb.org/t/p/w500/qNBAXBIQlnOThrVvA6mA2B5ggV6.jpg",
-//                            title = stringResource(R.string.movie_title,"B$index"),
-//                            rating = 7.9
-//                        )
+            } else {
+                LazyColumn(
+                    contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
+                    verticalArrangement = Arrangement.spacedBy(6.dp),
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(padding)
+                ) {
+                    // Show error banner if there's an error
+                    if (uiState.error != null) {
+                        item {
+                            Card(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(bottom = 8.dp),
+                                colors = CardDefaults.cardColors(
+                                    containerColor = Color.Red.copy(alpha = 0.8f)
+                                )
+                            ) {
+                                Row(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(12.dp),
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Text(
+                                        text = uiState.error ?: "Error",
+                                        color = Color.White,
+                                        fontSize = 12.sp,
+                                        modifier = Modifier.weight(1f)
+                                    )
+                                    TextButton(onClick = { viewModel.clearError() }) {
+                                        Text("Dismiss", color = Color.White)
+                                    }
+                                }
+                            }
+                        }
                     }
-                    Spacer(modifier = Modifier.height(4.dp))
+                    
+                    item {
+                        OutlinedTextField(
+                            value = searchText,
+                            onValueChange = { searchText = it },
+                            placeholder = { 
+                                Text(
+                                    stringResource(R.string.search_movies), 
+                                    color = Color.Gray
+                                ) 
+                            },
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .background(
+                                    Color.Black.copy(alpha = 0.3f), 
+                                    RoundedCornerShape(12.dp)
+                                ),
+                            colors = OutlinedTextFieldDefaults.colors(
+                                focusedBorderColor = Color.White,
+                                unfocusedBorderColor = Color.Transparent,
+                                cursorColor = Color.White,
+                                focusedTextColor = Color.White,
+                                unfocusedTextColor = Color.White
+                            )
+                        )
+                        Spacer(modifier = Modifier.height(20.dp))
+                    }
+
+                    // Show search results if searching
+                    if (searchText.isNotBlank()) {
+                        item {
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Text(
+                                    text = "Search Results",
+                                    color = Color.White,
+                                    fontWeight = FontWeight.Bold,
+                                    fontSize = 20.sp
+                                )
+                                if (uiState.isLoadingSearch) {
+                                    CircularProgressIndicator(
+                                        modifier = Modifier.size(20.dp),
+                                        color = Color.White,
+                                        strokeWidth = 2.dp
+                                    )
+                                }
+                            }
+                            Spacer(modifier = Modifier.height(10.dp))
+                        }
+                        
+                        if (uiState.searchResults.isEmpty() && !uiState.isLoadingSearch) {
+                            item {
+                                Text(
+                                    text = "No movies found for '$searchText'",
+                                    color = Color.White.copy(alpha = 0.7f),
+                                    fontSize = 14.sp,
+                                    modifier = Modifier.padding(vertical = 16.dp)
+                                )
+                            }
+                        } else {
+                            items(uiState.searchResults) { movie ->
+                                MovieGridItem(
+                                    movie = movie,
+                                    modifier = Modifier.fillMaxWidth()
+                                )
+                                Spacer(modifier = Modifier.height(4.dp))
+                            }
+                        }
+                    } else {
+                        // Trending Movies Section - Always show this section
+                        item {
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Text(
+                                    text = stringResource(R.string.trending_now),
+                                    color = Color.White,
+                                    fontWeight = FontWeight.Bold,
+                                    fontSize = 20.sp
+                                )
+                                if (uiState.isLoadingTrending && uiState.trendingMovies.isEmpty()) {
+                                    CircularProgressIndicator(
+                                        modifier = Modifier.size(20.dp),
+                                        color = Color.White,
+                                        strokeWidth = 2.dp
+                                    )
+                                }
+                            }
+                            Spacer(modifier = Modifier.height(10.dp))
+                        }
+                        
+                        item {
+                            if (uiState.trendingMovies.isNotEmpty()) {
+                                LazyRow(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                                    items(uiState.trendingMovies) { movie ->
+                                        MoviePosterItem(movie = movie)
+                                    }
+                                }
+                            } else if (uiState.isLoadingTrending) {
+                                // Show placeholder while loading
+                                LazyRow(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                                    items(5) {
+                                        Box(
+                                            modifier = Modifier
+                                                .width(140.dp)
+                                                .height(200.dp)
+                                                .background(Color.Gray.copy(alpha = 0.3f), RoundedCornerShape(12.dp))
+                                        )
+                                    }
+                                }
+                            } else {
+                                // Empty state for trending
+                                Text(
+                                    text = "No trending movies available",
+                                    color = Color.White.copy(alpha = 0.7f),
+                                    fontSize = 14.sp,
+                                    modifier = Modifier.padding(vertical = 16.dp)
+                                )
+                            }
+                            Spacer(modifier = Modifier.height(25.dp))
+                        }
+
+                        // Popular Movies Section - Always show this section
+                        item {
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Text(
+                                    text = "Popular Movies",
+                                    color = Color.White,
+                                    fontWeight = FontWeight.Bold,
+                                    fontSize = 20.sp
+                                )
+                                if (uiState.isLoadingPopular && uiState.popularMovies.isEmpty()) {
+                                    CircularProgressIndicator(
+                                        modifier = Modifier.size(20.dp),
+                                        color = Color.White,
+                                        strokeWidth = 2.dp
+                                    )
+                                }
+                            }
+                            Spacer(modifier = Modifier.height(10.dp))
+                        }
+                        
+                        if (uiState.popularMovies.isNotEmpty()) {
+                            items(uiState.popularMovies) { movie ->
+                                MovieGridItem(
+                                    movie = movie,
+                                    modifier = Modifier.fillMaxWidth()
+                                )
+                                Spacer(modifier = Modifier.height(4.dp))
+                            }
+                        } else if (uiState.isLoadingPopular) {
+                            // Show placeholders while loading
+                            items(5) {
+                                Box(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .height(200.dp)
+                                        .background(Color.Gray.copy(alpha = 0.3f), RoundedCornerShape(12.dp))
+                                        .padding(bottom = 4.dp)
+                                )
+                            }
+                        } else {
+                            // Empty state for popular
+                            item {
+                                Text(
+                                    text = "No popular movies available",
+                                    color = Color.White.copy(alpha = 0.7f),
+                                    fontSize = 14.sp,
+                                    modifier = Modifier.padding(vertical = 16.dp)
+                                )
+                            }
+                        }
+                    }
                 }
             }
         }
@@ -160,51 +361,66 @@ fun MoviesHomeScreen() {
 }
 
 @Composable
-fun MoviePosterItem(imageUrl: String, title: String) {
+fun MoviePosterItem(movie: Movie) {
+    val posterUrl = ImageUtils.getPosterUrl(movie.posterPath)
+    
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
         AsyncImage(
-            model = imageUrl,
-            contentDescription = title,
+            model = posterUrl ?: R.drawable.background,
+            contentDescription = movie.title,
             modifier = Modifier
                 .width(140.dp)
                 .height(200.dp)
                 .background(Color.Gray, RoundedCornerShape(12.dp)),
-            contentScale = ContentScale.Crop
+            contentScale = ContentScale.Crop,
+            placeholder = painterResource(id = R.drawable.background),
+            error = painterResource(id = R.drawable.background)
         )
         Spacer(modifier = Modifier.height(8.dp))
-        Text(title, color = Color.White, fontSize = 14.sp, maxLines = 1)
+        Text(
+            text = movie.title,
+            color = Color.White,
+            fontSize = 14.sp,
+            maxLines = 2,
+            overflow = TextOverflow.Ellipsis,
+            textAlign = TextAlign.Center
+        )
     }
 }
 
 @Composable
 fun MovieGridItem(
-    imageUrl: String,
-    title: String,
-    rating: Double,
+    movie: Movie,
     modifier: Modifier = Modifier
 ) {
+    val posterUrl = ImageUtils.getPosterUrl(movie.posterPath)
+    
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier = modifier.padding(bottom = 0.dp)
     ) {
         AsyncImage(
-            model = imageUrl,
-            contentDescription = title,
+            model = posterUrl ?: R.drawable.background,
+            contentDescription = movie.title,
             modifier = Modifier
                 .height(160.dp)
                 .fillMaxWidth()
                 .background(Color.Gray, RoundedCornerShape(12.dp)),
-            contentScale = ContentScale.Crop
+            contentScale = ContentScale.Crop,
+            placeholder = painterResource(id = R.drawable.background),
+            error = painterResource(id = R.drawable.background)
         )
 
         Spacer(modifier = Modifier.height(2.dp))
 
         Text(
-            title,
+            text = movie.title,
             color = Color.White,
             fontSize = 13.sp,
             textAlign = TextAlign.Center,
-            modifier = Modifier.padding(bottom = 0.dp)
+            modifier = Modifier.padding(bottom = 0.dp),
+            maxLines = 2,
+            overflow = TextOverflow.Ellipsis
         )
 
         Text(
@@ -213,7 +429,7 @@ fun MovieGridItem(
                     append(stringResource(R.string.movie_rating))
                 }
                 withStyle(style = SpanStyle(color = Color.White)) {
-                    append("$rating")
+                    append(String.format("%.1f", movie.voteAverage))
                 }
             },
             fontSize = 11.sp
