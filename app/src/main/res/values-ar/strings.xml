@@ -27,4 +27,6 @@
     <string name="language">اللغة</string>
     <string name="choose_language">اختر اللغة</string>
     <string name="about">عن المطورين</string>
+    <string name="wishlist">المفضلة</string>
+    <string name="edit_profile">تعديل الملف الشخصي</string>
 </resources>

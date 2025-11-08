@@ -4,6 +4,7 @@ import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import android.content.SharedPreferences
+import android.graphics.drawable.Icon
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
@@ -11,22 +12,26 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatDelegate
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Divider
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.RadioButtonDefaults
@@ -40,11 +45,18 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontStyle
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -54,7 +66,7 @@ import com.acms.cinemeteor.ui.theme.CinemeteorTheme
 import com.google.firebase.Firebase
 import com.google.firebase.auth.auth
 
-class SettingsActivity : ComponentActivity() {
+class ProfileActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
 
         val prefs = getSharedPreferences("settings", Context.MODE_PRIVATE)
@@ -63,7 +75,6 @@ class SettingsActivity : ComponentActivity() {
             LocaleListCompat.forLanguageTags("ar")
         else
             LocaleListCompat.forLanguageTags("en")
-
 
         AppCompatDelegate.setApplicationLocales(localeList)
         val mode = prefs.getInt("mode", AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM)
@@ -74,32 +85,19 @@ class SettingsActivity : ComponentActivity() {
         setContent {
             CinemeteorTheme {
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    SettingsDesign(modifier = Modifier.padding(innerPadding))
+                    ProfileDesign(modifier = Modifier.padding(innerPadding))
+                    StatusBarProtection()
                 }
             }
         }
     }
 }
 
-private fun onLogoutClick(context: Context) {
-    val auth = Firebase.auth
-    val myPrefs = context.getSharedPreferences("MyAppPrefs", Context.MODE_PRIVATE)
-    with(myPrefs.edit()) {
-        putBoolean("isLoggedIn", false)
-        apply()
-    }
-    auth.signOut()
-    val intent = Intent(context, LoginActivity::class.java)
-    (context as? Activity)?.finishAffinity()
-    context.startActivity(intent)
-}
-
 @Composable
-fun SettingsDesign(modifier: Modifier = Modifier) {
+fun ProfileDesign(modifier: Modifier = Modifier) {
     val context = LocalContext.current
     var showModeDialog by remember { mutableStateOf(false) }
     var showLangDialog by remember { mutableStateOf(false) }
-
     if (showLangDialog) {
         LanguageSetupDialog(
             prefs = context.getSharedPreferences("settings", Context.MODE_PRIVATE),
@@ -117,60 +115,130 @@ fun SettingsDesign(modifier: Modifier = Modifier) {
         verticalArrangement = Arrangement.Top,
         horizontalAlignment = Alignment.Start,
         modifier = modifier
+            .padding(horizontal = 12.dp, vertical = 32.dp)
+    ) {
+        Text(
+            text = "Profile",
+            style = MaterialTheme.typography.headlineMedium,
+            fontWeight = FontWeight.Bold,
+            color = MaterialTheme.colorScheme.secondary,
+            modifier = Modifier.padding(start = 8.dp, top = 8.dp)
+        )
+    }
+    Column(
+        verticalArrangement = Arrangement.Top,
+        horizontalAlignment = Alignment.Start,
+        modifier = modifier
             .fillMaxSize()
             .padding(horizontal = 12.dp, vertical = 32.dp)
     ) {
 
-        SettingButton(
+        Column(
+            verticalArrangement = Arrangement.Top,
+            horizontalAlignment = Alignment.CenterHorizontally,
+            modifier = modifier
+                .fillMaxWidth()
+                .padding(horizontal = 12.dp, vertical = 28.dp)
+        ) {
+            Image(
+                painter = painterResource(R.drawable.user),
+                contentDescription = "Profile icon",
+                colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.tertiary),
+                modifier = Modifier.size(120.dp)
+            )
+            Text(
+                text = "user name",
+                style = MaterialTheme.typography.titleMedium,
+                modifier = Modifier.padding(vertical = 8.dp)
+            )
+            Text(
+                text = "email",
+                style = MaterialTheme.typography.titleSmall
+            )
+        }
+
+        MixedButton(
+            icon = R.drawable.person,
+            text = R.string.edit_profile,
+            onClickAction = {  }
+        )
+
+
+        MixedButton(
             icon = R.drawable.language,
             text = R.string.language,
             onClickAction = { showLangDialog = true }
         )
 
-        Divider(
-            color = Color.Transparent,
-            thickness = 1.dp,
-            modifier = Modifier
-                .fillMaxWidth()
-        )
-
-        SettingButton(
+        MixedButton(
             icon = R.drawable.mode,
             text = R.string.theme,
             onClickAction = { showModeDialog = true }
         )
 
-        Divider(
-            color = Color.Transparent,
-            thickness = 1.dp,
-            modifier = Modifier
-                .fillMaxWidth()
-        )
-
-        SettingButton(
+        MixedButton(
             icon = R.drawable.info,
             text = R.string.about,
-            onClickAction = { showLangDialog = true }
+            onClickAction = {
+                context.startActivity(
+                    Intent(context, AboutActivity::class.java)
+                ) }
         )
 
-        Divider(
-            color = Color.Transparent,
-            thickness = 1.dp,
-            modifier = Modifier
-                .fillMaxWidth()
-        )
-
-        SettingButton(
+        MixedButton(
             icon = R.drawable.logout,
             text = R.string.logout,
             onClickAction = { onLogoutClick(context) }
         )
-
     }
 }
 
 @Composable
-fun ModeSetupDialog2(
+fun MixedButton(
+    icon: Int,
+    text: Int,
+    onClickAction: () -> Unit
+) {
+    TextButton(
+        onClick = { onClickAction() },
+        modifier = Modifier
+            .fillMaxWidth(),
+        shape = RoundedCornerShape(0.dp)
+    ) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.Start,
+            modifier = Modifier
+                .padding(vertical = 8.dp)
+                .fillMaxWidth()
+        ) {
+            Image(
+                painter = painterResource(icon),
+                contentDescription = stringResource(text),
+                colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.tertiary),
+                modifier = Modifier.size(30.dp)
+            )
+
+            Text(
+                text = stringResource(text),
+                fontSize = 18.sp,
+                color = MaterialTheme.colorScheme.secondary,
+                modifier = Modifier
+                    .padding(start = 8.dp)
+                    .weight(1f, fill = true)
+            )
+            Image(
+                painter = painterResource(R.drawable.arrow_forward),
+                contentDescription = stringResource(text),
+                colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.tertiary),
+                modifier = Modifier.size(30.dp)
+            )
+        }
+    }
+}
+
+@Composable
+fun ModeSetupDialog(
     prefs: SharedPreferences,
     onDismiss: () -> Unit
 ) {
@@ -241,7 +309,7 @@ fun ModeSetupDialog2(
 }
 
 @Composable
-fun LanguageSetupDialog2(
+fun LanguageSetupDialog(
     prefs: SharedPreferences,
     onDismiss: () -> Unit
 ) {
@@ -312,43 +380,7 @@ fun LanguageSetupDialog2(
 }
 
 @Composable
-fun SettingButton(
-    icon: Int,
-    text: Int,
-    onClickAction: () -> Unit
-) {
-    TextButton(
-        onClick = { onClickAction() },
-        modifier = Modifier
-            .fillMaxWidth(),
-        shape = RoundedCornerShape(0.dp)
-    ) {
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.Start,
-            modifier = Modifier
-                .padding(vertical = 8.dp)
-                .fillMaxWidth()
-        ) {
-            Image(
-                painter = painterResource(icon),
-                contentDescription = stringResource(text),
-                colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.tertiary),
-                modifier = Modifier.size(30.dp)
-            )
-
-            Text(
-                text = stringResource(text),
-                fontSize = 18.sp,
-                color = MaterialTheme.colorScheme.secondary,
-                modifier = Modifier.padding(start = 8.dp)
-            )
-        }
-    }
-}
-
-@Composable
-fun RadioButtonWithText2(
+fun RadioButtonWithText(
     text: String,
     selected: Boolean,
     onSelect: () -> Unit
@@ -372,9 +404,54 @@ fun RadioButtonWithText2(
     }
 }
 
-@Preview(showBackground = true, showSystemUi = true)
-@Composable
-fun SettingsPreview() {
-    SettingsDesign()
+private fun onLogoutClick(context: Context) {
+    val auth = Firebase.auth
+    val myPrefs = context.getSharedPreferences("MyAppPrefs", Context.MODE_PRIVATE)
+    with(myPrefs.edit()) {
+        putBoolean("isLoggedIn", false)
+        apply()
+    }
+    auth.signOut()
+    val intent = Intent(context, LoginActivity::class.java)
+    (context as? Activity)?.finishAffinity()
+    context.startActivity(intent)
 }
 
+@Preview(showBackground = true)
+@Composable
+fun GreetingPreview() {
+    CinemeteorTheme {
+        ProfileDesign()
+    }
+}
+
+@Composable
+private fun StatusBarProtection(
+    color: Color = MaterialTheme.colorScheme.surfaceContainer,
+    heightProvider: () -> Float = calculateGradientHeight(),
+) {
+
+    Canvas(Modifier.fillMaxSize()) {
+        val calculatedHeight = heightProvider()
+        val gradient = Brush.verticalGradient(
+            colors = listOf(
+                color.copy(alpha = 1f),
+                color.copy(alpha = .8f),
+                Color.Transparent
+            ),
+            startY = 0f,
+            endY = calculatedHeight
+        )
+        drawRect(
+            brush = gradient,
+            size = Size(size.width, calculatedHeight),
+        )
+    }
+}
+
+@Composable
+fun calculateGradientHeight(): () -> Float {
+    val statusBars = WindowInsets.statusBars
+    val density = LocalDensity.current
+    return { statusBars.getTop(density).times(1.2f) }
+}

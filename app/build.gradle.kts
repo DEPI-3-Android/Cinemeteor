@@ -91,7 +91,8 @@ dependencies {
     implementation("io.coil-kt:coil-compose:2.6.0")
     implementation("androidx.cardview:cardview:1.0.0")
     implementation("androidx.constraintlayout:constraintlayout:2.1.4")
-    
+    implementation("androidx.compose.material:material-icons-extended:1.7.8")
+
     // Retrofit and networking
     implementation(libs.retrofit)
     implementation(libs.retrofit.gson)

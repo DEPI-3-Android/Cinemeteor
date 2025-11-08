@@ -79,7 +79,7 @@ fun Greeting(modifier: Modifier = Modifier) {
                 .align(Alignment.TopEnd)
                 .padding(top = 64.dp, end = 16.dp),
             onClick = {
-                val I = Intent(context, SettingsActivity::class.java)
+                val I = Intent(context, ProfileActivity::class.java)
                 context.startActivity(I)
             }
         ) {

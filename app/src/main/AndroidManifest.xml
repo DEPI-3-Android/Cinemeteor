@@ -13,6 +13,16 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.Cinemeteor">
         <activity
+            android:name=".AboutActivity"
+            android:exported="false"
+            android:label="activity about"
+            android:theme="@style/Theme.Cinemeteor" />
+        <activity
+            android:name=".ProfileActivity"
+            android:exported="false"
+            android:label="activity profile"
+            android:theme="@style/Theme.Cinemeteor" />
+        <activity
             android:name=".SplashActivity"
             android:exported="true"
             android:label="@string/app_name">
@@ -25,8 +35,7 @@
         <activity
             android:name=".SignupActivity"
             android:exported="true"
-            android:label="@string/app_name">
-        </activity>
+            android:label="@string/app_name" />
         <activity
             android:name=".LoginActivity"
             android:exported="true"
@@ -41,4 +50,5 @@
             android:exported="true"
             android:label="@string/app_name" />
     </application>
+
 </manifest>
