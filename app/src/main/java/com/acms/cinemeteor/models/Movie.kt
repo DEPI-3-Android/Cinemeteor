@@ -1,7 +1,11 @@
 package com.acms.cinemeteor.models
 
+import android.os.Parcelable
 import com.google.gson.annotations.SerializedName
+import kotlinx.parcelize.Parcelize
 
+
+@Parcelize
 data class Movie(
     val id: Int,
     val title: String,
@@ -21,7 +25,7 @@ data class Movie(
     val originalLanguage: String?,
     @SerializedName("original_title")
     val originalTitle: String?
-)
+): Parcelable
 
 data class MovieResponse(
     val page: Int,

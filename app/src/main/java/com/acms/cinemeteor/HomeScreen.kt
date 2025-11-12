@@ -363,8 +363,16 @@ fun MoviesHomeScreen(
 @Composable
 fun MoviePosterItem(movie: Movie) {
     val posterUrl = ImageUtils.getPosterUrl(movie.posterPath)
-    
-    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+    val context = LocalContext.current
+
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        modifier = Modifier.clickable {
+            val intent = Intent(context, FilmActivity::class.java)
+            intent.putExtra("movie", movie)
+            context.startActivity(intent)
+        }
+    ) {
         AsyncImage(
             model = posterUrl ?: R.drawable.background,
             contentDescription = movie.title,
@@ -394,10 +402,17 @@ fun MovieGridItem(
     modifier: Modifier = Modifier
 ) {
     val posterUrl = ImageUtils.getPosterUrl(movie.posterPath)
-    
+    val context = LocalContext.current
+
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
-        modifier = modifier.padding(bottom = 0.dp)
+        modifier = modifier
+            .padding(bottom = 0.dp)
+            .clickable {
+                val intent = Intent(context, FilmActivity::class.java)
+                intent.putExtra("movie", movie)
+                context.startActivity(intent)
+            }
     ) {
         AsyncImage(
             model = posterUrl ?: R.drawable.background,
