@@ -5,6 +5,7 @@ plugins {
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
     id("com.google.gms.google-services")
+    id("kotlin-parcelize")
 }
 
 // Load local.properties file
@@ -92,6 +93,8 @@ dependencies {
     implementation("androidx.cardview:cardview:1.0.0")
     implementation("androidx.constraintlayout:constraintlayout:2.1.4")
     implementation("androidx.compose.material:material-icons-extended:1.7.8")
+
+
 
     // Retrofit and networking
     implementation(libs.retrofit)
