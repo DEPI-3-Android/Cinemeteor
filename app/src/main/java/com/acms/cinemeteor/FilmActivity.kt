@@ -63,7 +63,6 @@ class FilmActivity : ComponentActivity() {
         }
     }
 }
-
 @Composable
 fun FilmDetailsScreen(movie: Movie) {
     val context = LocalContext.current
