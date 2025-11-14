@@ -46,7 +46,9 @@ fun MoviesHomeScreen(
     val background = R.drawable.background
     val context = LocalContext.current
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-    
+    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
+
+
     // Debounced search
     var searchText by remember { mutableStateOf("") }
     LaunchedEffect(searchText) {
@@ -71,24 +73,13 @@ fun MoviesHomeScreen(
 
         Scaffold(
             topBar = {
-                CenterAlignedTopAppBar(
-                    navigationIcon = {
-                        IconButton(onClick = {
-                            val intent = Intent(context, SettingsActivity::class.java)
-                            context.startActivity(intent)
-                        }) {
-                            Icon(
-                                painter = painterResource(id = R.drawable.settings),
-                                contentDescription = stringResource(R.string.settings),
-                                tint = Color.White
-                            )
-                        }
-                    },
+                TopAppBar(
                     title = {
                         Text(
                             text = stringResource(R.string.app_name),
                             color = Color.White,
                             fontWeight = FontWeight.Bold
+
                         )
                     },
                     actions = {
@@ -100,7 +91,7 @@ fun MoviesHomeScreen(
                             )
                         }
                     },
-                    colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
+                    colors = TopAppBarDefaults.topAppBarColors(
                         containerColor = Color.Transparent
                     )
                 )
