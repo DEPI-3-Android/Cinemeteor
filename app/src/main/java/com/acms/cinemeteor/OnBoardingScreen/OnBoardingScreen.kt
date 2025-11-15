@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -13,10 +14,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.launch
 
 @Composable
@@ -61,14 +64,14 @@ fun OnboardingScreen(
                     verticalArrangement = Arrangement.Top
                 ) {
                     Text(
-                        text = item.title,
+                        text = stringResource(item.title),
                         style = MaterialTheme.typography.headlineSmall,
                         fontWeight = FontWeight.Bold,
                         color = Color.White,
                         textAlign = TextAlign.Center
                     )
                     Text(
-                        text = item.description,
+                        text = stringResource(item.description),
                         style = MaterialTheme.typography.bodyMedium,
                         color = Color.White.copy(alpha = 0.8f),
                         textAlign = TextAlign.Center,
@@ -83,6 +86,7 @@ fun OnboardingScreen(
             ) {
                 Row(
                     horizontalArrangement = Arrangement.Center,
+                    verticalAlignment = Alignment.CenterVertically,
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(16.dp)
@@ -92,11 +96,13 @@ fun OnboardingScreen(
                             if (pageState.currentPage == index) Color.White
                             else Color.Gray
                         Box(
+
                             modifier = Modifier
                                 .padding(4.dp)
                                 .size(if (pageState.currentPage == index) 12.dp else 8.dp)
                                 .background(color, shape = MaterialTheme.shapes.small)
                         )
+
                     }
                 }
 
@@ -110,17 +116,21 @@ fun OnboardingScreen(
                             onFinish()
                         }
                     },
-                    shape = MaterialTheme.shapes.large,
+                    shape = RoundedCornerShape(20),
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(56.dp)
-                        .padding(horizontal = 32.dp)
+                        .padding(32.dp)
                 ) {
                     Text(
                         text = if (pageState.currentPage == onBoardingPages.size - 1)
                             "Go!"
                         else
-                            "Next"
+                            "Next",
+                        fontSize = 18.sp,
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 8.dp)
                     )
                 }
             }

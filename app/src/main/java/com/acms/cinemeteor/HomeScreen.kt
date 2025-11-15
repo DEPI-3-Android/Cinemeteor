@@ -1,21 +1,48 @@
 package com.acms.cinemeteor
 
 import android.content.Intent
-import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Notifications
-import androidx.compose.material3.*
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.*
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
@@ -43,7 +70,6 @@ import kotlinx.coroutines.delay
 fun MoviesHomeScreen(
     viewModel: MovieViewModel = viewModel()
 ) {
-    val background = R.drawable.background
     val context = LocalContext.current
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
@@ -58,17 +84,9 @@ fun MoviesHomeScreen(
 
     Box(modifier = Modifier.fillMaxSize()) {
 
-        Image(
-            painter = painterResource(id = background),
-            contentDescription = "Background",
-            modifier = Modifier.fillMaxSize(),
-            contentScale = ContentScale.Crop
-        )
-
         Box(
             Modifier
                 .fillMaxSize()
-                .background(Color.Black.copy(alpha = 0.4f))
         )
 
         Scaffold(
@@ -77,7 +95,6 @@ fun MoviesHomeScreen(
                     title = {
                         Text(
                             text = stringResource(R.string.app_name),
-                            color = Color.White,
                             fontWeight = FontWeight.Bold
 
                         )
@@ -99,11 +116,12 @@ fun MoviesHomeScreen(
             containerColor = Color.Transparent
         ) { padding ->
             // Show initial loading state only when everything is empty and loading
-            if (uiState.isLoading && 
-                uiState.trendingMovies.isEmpty() && 
-                uiState.popularMovies.isEmpty() && 
+            if (uiState.isLoading &&
+                uiState.trendingMovies.isEmpty() &&
+                uiState.popularMovies.isEmpty() &&
                 uiState.searchResults.isEmpty() &&
-                uiState.searchQuery.isBlank()) {
+                uiState.searchQuery.isBlank()
+            ) {
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
@@ -152,40 +170,41 @@ fun MoviesHomeScreen(
                                 ) {
                                     Text(
                                         text = uiState.error ?: "Error",
-                                        color = Color.White,
+
                                         fontSize = 12.sp,
                                         modifier = Modifier.weight(1f)
                                     )
                                     TextButton(onClick = { viewModel.clearError() }) {
-                                        Text("Dismiss", color = Color.White)
+                                        Text("Dismiss")
                                     }
                                 }
                             }
                         }
                     }
-                    
+
                     item {
                         OutlinedTextField(
                             value = searchText,
                             onValueChange = { searchText = it },
-                            placeholder = { 
+                            placeholder = {
                                 Text(
-                                    stringResource(R.string.search_movies), 
-                                    color = Color.Gray
-                                ) 
+                                    stringResource(R.string.search_movies),
+                                    color = MaterialTheme.colorScheme.tertiary
+                                )
                             },
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .background(
-                                    Color.Black.copy(alpha = 0.3f), 
-                                    RoundedCornerShape(12.dp)
-                                ),
+                                .padding(12.dp),
                             colors = OutlinedTextFieldDefaults.colors(
-                                focusedBorderColor = Color.White,
-                                unfocusedBorderColor = Color.Transparent,
-                                cursorColor = Color.White,
-                                focusedTextColor = Color.White,
-                                unfocusedTextColor = Color.White
+                                focusedBorderColor = MaterialTheme.colorScheme.primary,
+                                unfocusedBorderColor = MaterialTheme.colorScheme.tertiary,
+                                cursorColor = MaterialTheme.colorScheme.primary,
+                                focusedTextColor = MaterialTheme.colorScheme.secondary,
+                                unfocusedTextColor = MaterialTheme.colorScheme.secondary,
+                                disabledTextColor = MaterialTheme.colorScheme.tertiary,
+                                disabledPlaceholderColor = MaterialTheme.colorScheme.tertiary,
+                                focusedPlaceholderColor = MaterialTheme.colorScheme.tertiary,
+                                unfocusedPlaceholderColor = MaterialTheme.colorScheme.tertiary
                             )
                         )
                         Spacer(modifier = Modifier.height(20.dp))
@@ -201,7 +220,7 @@ fun MoviesHomeScreen(
                             ) {
                                 Text(
                                     text = "Search Results",
-                                    color = Color.White,
+
                                     fontWeight = FontWeight.Bold,
                                     fontSize = 20.sp
                                 )
@@ -215,12 +234,11 @@ fun MoviesHomeScreen(
                             }
                             Spacer(modifier = Modifier.height(10.dp))
                         }
-                        
+
                         if (uiState.searchResults.isEmpty() && !uiState.isLoadingSearch) {
                             item {
                                 Text(
                                     text = "No movies found for '$searchText'",
-                                    color = Color.White.copy(alpha = 0.7f),
                                     fontSize = 14.sp,
                                     modifier = Modifier.padding(vertical = 16.dp)
                                 )
@@ -244,21 +262,21 @@ fun MoviesHomeScreen(
                             ) {
                                 Text(
                                     text = stringResource(R.string.trending_now),
-                                    color = Color.White,
+
                                     fontWeight = FontWeight.Bold,
                                     fontSize = 20.sp
                                 )
                                 if (uiState.isLoadingTrending && uiState.trendingMovies.isEmpty()) {
                                     CircularProgressIndicator(
                                         modifier = Modifier.size(20.dp),
-                                        color = Color.White,
+
                                         strokeWidth = 2.dp
                                     )
                                 }
                             }
                             Spacer(modifier = Modifier.height(10.dp))
                         }
-                        
+
                         item {
                             if (uiState.trendingMovies.isNotEmpty()) {
                                 LazyRow(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
@@ -274,15 +292,14 @@ fun MoviesHomeScreen(
                                             modifier = Modifier
                                                 .width(140.dp)
                                                 .height(200.dp)
-                                                .background(Color.Gray.copy(alpha = 0.3f), RoundedCornerShape(12.dp))
+                                                .clip(RoundedCornerShape(16))
                                         )
                                     }
                                 }
                             } else {
                                 // Empty state for trending
                                 Text(
-                                    text = "No trending movies available",
-                                    color = Color.White.copy(alpha = 0.7f),
+                                    text = stringResource(R.string.no_trending),
                                     fontSize = 14.sp,
                                     modifier = Modifier.padding(vertical = 16.dp)
                                 )
@@ -298,22 +315,21 @@ fun MoviesHomeScreen(
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
                                 Text(
-                                    text = "Popular Movies",
-                                    color = Color.White,
+                                    text = stringResource(R.string.popular),
                                     fontWeight = FontWeight.Bold,
                                     fontSize = 20.sp
                                 )
                                 if (uiState.isLoadingPopular && uiState.popularMovies.isEmpty()) {
                                     CircularProgressIndicator(
                                         modifier = Modifier.size(20.dp),
-                                        color = Color.White,
+
                                         strokeWidth = 2.dp
                                     )
                                 }
                             }
                             Spacer(modifier = Modifier.height(10.dp))
                         }
-                        
+
                         if (uiState.popularMovies.isNotEmpty()) {
                             items(uiState.popularMovies) { movie ->
                                 MovieGridItem(
@@ -329,7 +345,7 @@ fun MoviesHomeScreen(
                                     modifier = Modifier
                                         .fillMaxWidth()
                                         .height(200.dp)
-                                        .background(Color.Gray.copy(alpha = 0.3f), RoundedCornerShape(12.dp))
+                                        .clip(RoundedCornerShape(16.dp))
                                         .padding(bottom = 4.dp)
                                 )
                             }
@@ -337,8 +353,7 @@ fun MoviesHomeScreen(
                             // Empty state for popular
                             item {
                                 Text(
-                                    text = "No popular movies available",
-                                    color = Color.White.copy(alpha = 0.7f),
+                                    text = stringResource(R.string.no_popular),
                                     fontSize = 14.sp,
                                     modifier = Modifier.padding(vertical = 16.dp)
                                 )
@@ -365,20 +380,21 @@ fun MoviePosterItem(movie: Movie) {
         }
     ) {
         AsyncImage(
-            model = posterUrl ?: R.drawable.background,
+            model = posterUrl ?: R.drawable.background_screen,
             contentDescription = movie.title,
             modifier = Modifier
                 .width(140.dp)
                 .height(200.dp)
-                .background(Color.Gray, RoundedCornerShape(12.dp)),
+                .clip(shape = RoundedCornerShape(16)),
             contentScale = ContentScale.Crop,
-            placeholder = painterResource(id = R.drawable.background),
-            error = painterResource(id = R.drawable.background)
-        )
+            placeholder = painterResource(id = R.drawable.background_screen),
+            error = painterResource(id = R.drawable.background_screen),
+
+            )
         Spacer(modifier = Modifier.height(8.dp))
         Text(
             text = movie.title,
-            color = Color.White,
+
             fontSize = 14.sp,
             maxLines = 2,
             overflow = TextOverflow.Ellipsis,
@@ -406,22 +422,21 @@ fun MovieGridItem(
             }
     ) {
         AsyncImage(
-            model = posterUrl ?: R.drawable.background,
+            model = posterUrl ?: R.drawable.background_screen,
             contentDescription = movie.title,
             modifier = Modifier
-                .height(160.dp)
                 .fillMaxWidth()
-                .background(Color.Gray, RoundedCornerShape(12.dp)),
+                .height(300.dp)
+                .clip(shape = RoundedCornerShape(16)),
             contentScale = ContentScale.Crop,
-            placeholder = painterResource(id = R.drawable.background),
-            error = painterResource(id = R.drawable.background)
+            placeholder = painterResource(id = R.drawable.background_screen),
+            error = painterResource(id = R.drawable.background_screen)
         )
 
         Spacer(modifier = Modifier.height(2.dp))
 
         Text(
             text = movie.title,
-            color = Color.White,
             fontSize = 13.sp,
             textAlign = TextAlign.Center,
             modifier = Modifier.padding(bottom = 0.dp),
@@ -434,7 +449,7 @@ fun MovieGridItem(
                 withStyle(style = SpanStyle(color = Color.Yellow)) {
                     append(stringResource(R.string.movie_rating))
                 }
-                withStyle(style = SpanStyle(color = Color.White)) {
+                withStyle(style = SpanStyle()) {
                     append(String.format("%.1f", movie.voteAverage))
                 }
             },

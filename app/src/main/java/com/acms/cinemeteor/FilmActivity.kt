@@ -8,14 +8,36 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
@@ -27,6 +49,7 @@ import coil.compose.AsyncImage
 import com.acms.cinemeteor.models.Movie
 import com.acms.cinemeteor.ui.theme.CinemeteorTheme
 import com.acms.cinemeteor.utils.ImageUtils
+
 
 class FilmActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -63,11 +86,18 @@ class FilmActivity : ComponentActivity() {
         }
     }
 }
+
 @Composable
 fun FilmDetailsScreen(movie: Movie) {
-    val context = LocalContext.current
     val posterUrl = movie.posterPath?.let { ImageUtils.getPosterUrl(it) }
     var expanded by remember { mutableStateOf(false) }
+    val context = LocalContext.current
+    var isSaved by remember {
+        mutableStateOf(LocalSavedMovies.isMovieSaved(context, movie.id))
+    }
+
+
+
 
     Box(
         modifier = Modifier
@@ -76,7 +106,7 @@ fun FilmDetailsScreen(movie: Movie) {
     ) {
 
         AsyncImage(
-            model = posterUrl ?: R.drawable.background,
+            model = posterUrl ?: R.drawable.background_screen,
             contentDescription = "Background",
             modifier = Modifier.fillMaxSize(),
             contentScale = ContentScale.Crop,
@@ -99,15 +129,16 @@ fun FilmDetailsScreen(movie: Movie) {
         ) {
 
             AsyncImage(
-                model = posterUrl ?: R.drawable.background,
+                model = posterUrl ?: R.drawable.background_screen,
                 contentDescription = movie.title,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(300.dp)
+                    .height(400.dp)
+                    .clip(RoundedCornerShape(16.dp))
                     .align(Alignment.CenterHorizontally),
                 contentScale = ContentScale.Crop,
-                placeholder = painterResource(id = R.drawable.background),
-                error = painterResource(id = R.drawable.background)
+                placeholder = painterResource(id = R.drawable.background_screen),
+                error = painterResource(id = R.drawable.background_screen)
             )
 
             Spacer(modifier = Modifier.height(12.dp))
@@ -142,13 +173,20 @@ fun FilmDetailsScreen(movie: Movie) {
                 )
 
                 Row {
-                    IconButton(onClick = { /* TODO: Save */ }) {
+                    IconButton(onClick = {
+                        LocalSavedMovies.toggleMovie(context, movie)
+
+                        isSaved = LocalSavedMovies.isMovieSaved(context, movie.id)
+                    }) {
                         Icon(
-                            painter = painterResource(id = R.drawable.ic_save),
+                            painter = painterResource(
+                                id = if (isSaved) R.drawable.ic_saved else R.drawable.ic_save
+                            ),
                             contentDescription = "Save",
-                            tint = MaterialTheme.colorScheme.onBackground
+                            tint = MaterialTheme.colorScheme.primary
                         )
                     }
+
                     IconButton(onClick = {
                         val shareIntent = Intent(Intent.ACTION_SEND).apply {
                             type = "text/plain"

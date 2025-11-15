@@ -6,6 +6,7 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.appcompat.app.AppCompatDelegate
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
@@ -23,11 +24,24 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
+import androidx.core.os.LocaleListCompat
 import com.acms.cinemeteor.ui.theme.CinemeteorTheme
 import kotlinx.coroutines.delay
 
 class SplashActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
+
+        val prefs = getSharedPreferences("settings", Context.MODE_PRIVATE)
+        val langCode = prefs.getString("lang", "en")
+        val localeList = if (langCode == "ar")
+            LocaleListCompat.forLanguageTags("ar")
+        else
+            LocaleListCompat.forLanguageTags("en")
+
+        AppCompatDelegate.setApplicationLocales(localeList)
+        val mode = prefs.getInt("mode", AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM)
+        AppCompatDelegate.setDefaultNightMode(mode)
+
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
 
@@ -43,9 +57,11 @@ class SplashActivity : ComponentActivity() {
                             !onboardingShown -> {
                                 startActivity(Intent(this, MainActivity::class.java))
                             }
+
                             isLoggedIn -> {
                                 startActivity(Intent(this, MainActivity::class.java))
                             }
+
                             else -> {
                                 startActivity(Intent(this, LoginActivity::class.java))
                             }
@@ -79,18 +95,11 @@ fun SplashScreen(onTimeout: () -> Unit) {
         contentAlignment = Alignment.Center
     ) {
         Image(
-            painter = painterResource(id = R.drawable.background),
-            contentDescription = null,
-            modifier = Modifier
-                .fillMaxSize(),
-            contentScale = ContentScale.Crop
-        )
-        Image(
             painter = painterResource(id = R.drawable.app_logo),
             contentDescription = null,
             modifier = Modifier
                 .size(320.dp)
-                .graphicsLayer {this.alpha = alpha }
+                .graphicsLayer { this.alpha = alpha }
         )
     }
 }

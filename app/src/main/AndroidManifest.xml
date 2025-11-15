@@ -18,13 +18,18 @@
             android:label="@string/title_activity_film"
             android:theme="@style/Theme.Cinemeteor" />
         <activity
-            android:name=".AboutActivity"
+            android:name=".FavoriteActivity"
             android:exported="false"
+            android:label="@string/title_activity_favorite"
+            android:theme="@style/Theme.Cinemeteor" />
+        <activity
+            android:name=".AboutActivity"
+            android:exported="true"
             android:label="activity about"
             android:theme="@style/Theme.Cinemeteor" />
         <activity
             android:name=".ProfileActivity"
-            android:exported="false"
+            android:exported="true"
             android:label="activity profile"
             android:theme="@style/Theme.Cinemeteor" />
         <activity
@@ -40,20 +45,23 @@
         <activity
             android:name=".SignupActivity"
             android:exported="true"
-            android:label="@string/app_name" />
+            android:label="@string/app_name"
+            android:theme="@style/Theme.Cinemeteor" />
         <activity
             android:name=".LoginActivity"
             android:exported="true"
-            android:label="@string/app_name" />
+            android:label="@string/app_name"
+            android:theme="@style/Theme.Cinemeteor" />
         <activity
             android:name=".MainActivity"
             android:exported="true"
             android:label="@string/app_name"
             android:theme="@style/Theme.Cinemeteor" />
         <activity
-            android:name=".SettingsActivity"
+            android:name=".EditProfileActivity"
             android:exported="true"
-            android:label="@string/app_name" />
+            android:label="@string/app_name"
+            android:theme="@style/Theme.Cinemeteor" />
     </application>
 
 </manifest>

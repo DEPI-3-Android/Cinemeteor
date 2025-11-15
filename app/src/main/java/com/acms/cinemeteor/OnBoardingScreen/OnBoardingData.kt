@@ -4,19 +4,19 @@ import com.acms.cinemeteor.R
 
 val onBoardingPages = listOf(
     OnBoardingPage(
-        image = R.drawable.image_1,
-        title = "Your cinematic journey begins here!",
-        description = "Explore the vast worlds of movies, from classics to the latest releases, all in one place."
+        image = R.drawable.onboarding,
+        title = R.string.boardingT1,
+        description = R.string.boardingD1
     ),
     OnBoardingPage(
-        image = R.drawable.image_2,
-        title = "Discover what you love, and let us amaze you!",
-        description = "Smart recommendations tailored specifically for you, and an endless library of stories waiting to be discovered."
+        image = R.drawable.onboarding,
+        title = R.string.boardingT2,
+        description = R.string.boardingD2
     ),
     OnBoardingPage(
-        image = R.drawable.image_3,
-        title = "Enjoy every moment, and share your passion.",
-        description = " "
+        image = R.drawable.onboarding,
+        title = R.string.boardingT3,
+        description = R.string.boardingD3
     )
 
 )

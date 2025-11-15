@@ -6,6 +6,7 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.appcompat.app.AppCompatDelegate
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -25,12 +26,25 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.os.LocaleListCompat
 import com.acms.cinemeteor.OnBoardingScreen.OnboardingScreen
 import com.acms.cinemeteor.ui.theme.CinemeteorTheme
 import com.example.compose.snippets.components.NavigationBarBottom
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
+
+        val prefs = getSharedPreferences("settings", Context.MODE_PRIVATE)
+        val langCode = prefs.getString("lang", "en")
+        val localeList = if (langCode == "ar")
+            LocaleListCompat.forLanguageTags("ar")
+        else
+            LocaleListCompat.forLanguageTags("en")
+
+        AppCompatDelegate.setApplicationLocales(localeList)
+        val mode = prefs.getInt("mode", AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM)
+        AppCompatDelegate.setDefaultNightMode(mode)
+
         super.onCreate(savedInstanceState)
 
         val sharedPref = getSharedPreferences("app_prefs", Context.MODE_PRIVATE)
@@ -39,7 +53,6 @@ class MainActivity : ComponentActivity() {
         setContent {
             CinemeteorTheme {
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-
 //                    var showSplash by remember { mutableStateOf(true) }
                     var showOnboarding by rememberSaveable { mutableStateOf(!onboardingShown) }
 
@@ -50,15 +63,11 @@ class MainActivity : ComponentActivity() {
                                 sharedPref.edit().putBoolean("onboarding_show", true).apply()
                                 showOnboarding = false
                             }
-
                         )
                     } else {
                         NavigationBarBottom(modifier = Modifier.padding(innerPadding))
                     }
-
-
                 }
-
             }
         }
     }

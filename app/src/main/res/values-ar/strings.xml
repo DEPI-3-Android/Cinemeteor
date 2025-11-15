@@ -1,26 +1,30 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">Cinemeteor</string>
-    <string name="new_user">مستخدم جديد؟</string>
-    <string name="old_user">لديك حساب بالفعل؟</string>
-    <string name="forget_password">نسيت كلمة المرور؟</string>
+    <string name="app_name">CineMeteor</string>
+    <string name="welcome_back">مرحبا بعودتك إلى</string>
+    <string name="welcome">مرحبا بك في</string>
+    <string name="new_user">مستخدم جديد؟ </string>
+    <string name="signup_now">انشئ حساب!</string>
+    <string name="old_user">لديك حساب بالفعل؟ </string>
+    <string name="login_now">"سجل الدخول!"</string>
+    <string name="forget_password">نسيت كلمة المرور؟ </string>
+    <string name="clickhere">"اضغط هنا!"</string>
     <string name="login">تسجيل الدخول</string>
     <string name="sign_up">إنشاء حساب</string>
     <string name="email">البريد الإلكتروني</string>
     <string name="password">كلمة المرور</string>
     <string name="confirm_password">تأكيد كلمة المرور</string>
-    <string name="welcome">مرحبا بك</string>
     <string name="password_not_match">كلمتا المرور غير متطابقتين</string>
     <string name="check_email_inbox">تفقد صندوق بريدك الإلكتروني</string>
     <string name="login_failed">فشل التسجيل</string>
     <string name="user_not_found">المستخدم غير موجود</string>
-    <string name="verification_required">قم بتفعييل بريدك اولا</string>
+    <string name="verification_required">قم بتفعيل بريدك اولا</string>
     <string name="logout">تسجيل الخروج</string>
     <string name="settings">الإعدادت</string>
     <string name="system_default">الوضع الافتراضي للنظام</string>
     <string name="light">فاتح</string>
     <string name="dark">مظلم</string>
-    <string name="choose_theme">اختر سمه</string>
+    <string name="choose_theme">اختر سمة</string>
     <string name="ok">موافق</string>
     <string name="cancel">الغاء</string>
     <string name="theme">السمة</string>
@@ -29,4 +33,27 @@
     <string name="about">عن المطورين</string>
     <string name="wishlist">المفضلة</string>
     <string name="edit_profile">تعديل الملف الشخصي</string>
+     <string name="notifications">الاشعارات</string>
+    <string name="search_movies">بحث عن فيلم</string>
+    <string name="trending_now">رائج الآن</string>
+    <string name="movie_title">فيلم</string>
+    <string name="name">الاسم</string>
+    <string name="boardingT1">رحلتك السينمائية تبدأ من هنا!</string>
+    <string name="boardingD1">اكتشف عوالم الأفلام الواسعة، من الكلاسيكيات إلى أحدث الإصدارات، كل ذلك في مكان واحد.</string>
+    <string name="boardingT2">اكتشف ما تحبه، ودعنا ندهشك!</string>
+    <string name="boardingD2">توصيات ذكية مصممة خصيصًا لك، ومكتبة لا نهائية من القصص تنتظر أن تكتشفها.</string>
+    <string name="boardingT3">استمتع بكل لحظة وشارك شغفك.</string>
+    <string name="boardingD3"> </string>
+    <string name="or">أو تابع باستخدام</string>
+    <string name="android_dev">مطور تطبيقات أندرويد</string>
+    <string name="android_dev_ui">مطور تطبيقات أندرويد ومصمم واجهات وتجربة المستخدم</string>
+    <string name="android_dev_api">مطور تطبيقات أندرويد (متخصص في التكامل مع الـ API)</string>
+    <string name="save">حفظ</string>
+    <string name="profile">الملف الشخصي</string>
+    <string name="edit">تعديل</string>
+    <string name="popular">أفلام شهيرة</string>
+    <string name="google">جوجل</string>
+    <string name="no_trending">لا توجد أفلام رائجة الآن</string>
+    <string name="no_popular">لا توجد أفلام شهيرة متاحة</string>
+
 </resources>

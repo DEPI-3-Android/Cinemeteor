@@ -1,5 +1,6 @@
 package com.acms.cinemeteor
 
+import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
@@ -7,8 +8,10 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.appcompat.app.AppCompatDelegate
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -20,12 +23,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.Code
-import androidx.compose.material.icons.filled.Work
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -34,6 +31,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -41,16 +39,31 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.os.LocaleListCompat
 import com.acms.cinemeteor.ui.theme.CinemeteorTheme
 
 class AboutActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
+
+        val prefs = getSharedPreferences("settings", Context.MODE_PRIVATE)
+        val langCode = prefs.getString("lang", "en")
+        val localeList = if (langCode == "ar")
+            LocaleListCompat.forLanguageTags("ar")
+        else
+            LocaleListCompat.forLanguageTags("en")
+
+        AppCompatDelegate.setApplicationLocales(localeList)
+        val mode = prefs.getInt("mode", AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM)
+        AppCompatDelegate.setDefaultNightMode(mode)
+
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
             CinemeteorTheme {
-                Scaffold(modifier = Modifier
-                    .fillMaxSize()) { innerPadding ->
+                Scaffold(
+                    modifier = Modifier
+                        .fillMaxSize()
+                ) { innerPadding ->
                     AboutDesign(modifier = Modifier.padding(innerPadding))
                 }
             }
@@ -60,6 +73,8 @@ class AboutActivity : ComponentActivity() {
 
 @Composable
 fun AboutDesign(modifier: Modifier = Modifier) {
+    val context = LocalContext.current
+    val activity = context as? Activity
 
     Column(
         verticalArrangement = Arrangement.Top,
@@ -69,22 +84,18 @@ fun AboutDesign(modifier: Modifier = Modifier) {
             .padding(top = 24.dp)
             .fillMaxWidth()
     ) {
-        Row (
+        Row(
             horizontalArrangement = Arrangement.Start,
-            verticalAlignment = Alignment.Top
+            verticalAlignment = Alignment.CenterVertically
         ) {
-            Icon(
-//                        painter = painterResource(R.drawable.linkedin),
-                Icons.Default.ArrowBack,
-                contentDescription = "Back Button",
-                tint = MaterialTheme.colorScheme.tertiary
-            )
             Text(
-                text = "About Us",
+                text = stringResource(R.string.about),
                 style = MaterialTheme.typography.headlineMedium,
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.secondary,
-                modifier = Modifier.padding(start = 8.dp, top = 8.dp)
+                modifier = Modifier
+                    .padding(start = 8.dp)
+                    .weight(1f, true)
             )
         }
         Column(
@@ -104,7 +115,7 @@ fun AboutDesign(modifier: Modifier = Modifier) {
                     DeveloperCard(
                         img = R.drawable.ammelogo,
                         name = "Ahmed Esmail",
-                        role = R.string.app_name,
+                        role = R.string.android_dev_ui,
                         linkedInLink = "",
                         gitHubLink = ""
                     )
@@ -112,17 +123,17 @@ fun AboutDesign(modifier: Modifier = Modifier) {
                 item {
                     DeveloperCard(
                         img = R.drawable.person,
-                        name = "Marwan",
-                        role = R.string.app_name,
+                        name = "Marwan Amr",
+                        role = R.string.android_dev,
                         linkedInLink = "",
                         gitHubLink = ""
                     )
                 }
                 item {
                     DeveloperCard(
-                        img = R.drawable.mode,
+                        img = R.drawable.person,
                         name = "Ahmed Mostafa",
-                        role = R.string.app_name,
+                        role = R.string.android_dev_api,
                         linkedInLink = "",
                         gitHubLink = ""
 
@@ -130,9 +141,9 @@ fun AboutDesign(modifier: Modifier = Modifier) {
                 }
                 item {
                     DeveloperCard(
-                        img = R.drawable.settings,
+                        img = R.drawable.person,
                         name = "Ahmed Reda",
-                        role = R.string.app_name,
+                        role = R.string.android_dev,
                         linkedInLink = "",
                         gitHubLink = ""
 
@@ -140,9 +151,9 @@ fun AboutDesign(modifier: Modifier = Modifier) {
                 }
                 item {
                     DeveloperCard(
-                        img = R.drawable.info,
+                        img = R.drawable.person,
                         name = "Sara",
-                        role = R.string.app_name,
+                        role = R.string.android_dev,
                         linkedInLink = "",
                         gitHubLink = ""
 
@@ -150,9 +161,9 @@ fun AboutDesign(modifier: Modifier = Modifier) {
                 }
                 item {
                     DeveloperCard(
-                        img = R.drawable.language,
+                        img = R.drawable.person,
                         name = "Christine",
-                        role = R.string.app_name,
+                        role = R.string.android_dev,
                         linkedInLink = "",
                         gitHubLink = ""
 
@@ -213,31 +224,34 @@ fun DeveloperCard(
 //                textAlign = TextAlign.Center
             )
             Row(
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                modifier = Modifier
+                    .padding(start = 6.dp)
             ) {
-                IconButton(
-                    onClick = { openUrl(context, linkedInLink) }
-                ) {
-                    Icon(
-//                        painter = painterResource(R.drawable.linkedin),
-                        Icons.Default.Work,
-                        contentDescription = "$name LinkedIn",
-                        tint = MaterialTheme.colorScheme.tertiary
-                    )
-                }
-                IconButton(
-                    onClick = { openUrl(context, gitHubLink) }
-                ) {
-                    Icon(
-                        Icons.Default.Code,
-                        contentDescription = "$name GitHub",
-                        tint = MaterialTheme.colorScheme.tertiary
-                    )
-                }
+                Image(
+                    painter = painterResource(R.drawable.linkedin),
+                    contentDescription = "$name LinkedIn",
+                    modifier = Modifier
+                        .clickable(onClick = { openUrl(context, gitHubLink) })
+                        .size(32.dp)
+                        .padding(4.dp),
+                    colorFilter = ColorFilter.tint(color = MaterialTheme.colorScheme.tertiary)
+                )
+
+                Image(
+                    painter = painterResource(R.drawable.github),
+                    contentDescription = "$name GitHub",
+                    colorFilter = ColorFilter.tint(color = MaterialTheme.colorScheme.tertiary),
+                    modifier = Modifier
+                        .clickable(onClick = { openUrl(context, gitHubLink) })
+                        .size(32.dp)
+                        .padding(4.dp)
+                )
             }
         }
     }
 }
+
 //}
 
 @Preview(showBackground = true)
