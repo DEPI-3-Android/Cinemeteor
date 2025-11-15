@@ -95,11 +95,6 @@ private fun onLoginClick(context: Context, emailField: String, passwordField: St
                 if (oldUser != null && oldUser.isEmailVerified) {
                     Log.d("LoginScreen", "Login Successful")
                     // Saving the logged in State
-                    val myPrefs = context.getSharedPreferences("MyAppPrefs", Context.MODE_PRIVATE)
-                    with(myPrefs.edit()) {
-                        putBoolean("isLoggedIn", true)
-                        apply() // Saves the changes
-                    }
                     val I = Intent(context, MainActivity::class.java)
                     I.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
                     context.startActivity(I)
@@ -108,9 +103,6 @@ private fun onLoginClick(context: Context, emailField: String, passwordField: St
                     Toast.makeText(context, R.string.verification_required, Toast.LENGTH_LONG)
                         .show()
                 }
-            } else {
-                Log.w("LoginScreen", "Login Failed")
-                Toast.makeText(context, R.string.login_failed, Toast.LENGTH_LONG).show()
             }
         }
 }
@@ -121,6 +113,8 @@ fun LoginDesign(modifier: Modifier = Modifier) {
     var emailField by remember { mutableStateOf("") }
     var passwordField by remember { mutableStateOf("") }
     val context = LocalContext.current
+    val auth = Firebase.auth
+    val oldUser = auth.currentUser
 
     Column(
         verticalArrangement = Arrangement.Top,
@@ -128,6 +122,11 @@ fun LoginDesign(modifier: Modifier = Modifier) {
         modifier = modifier
             .padding(horizontal = 12.dp, vertical = 32.dp)
     ) {
+        if (oldUser != null && oldUser.isEmailVerified) {
+            val I = Intent(context, MainActivity::class.java)
+            I.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+            context.startActivity(I)
+        }
         Text(
             text = buildAnnotatedString {
                 append(" ${stringResource(R.string.welcome_back)}")
