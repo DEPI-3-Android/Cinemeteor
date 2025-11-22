@@ -64,6 +64,9 @@ import com.acms.cinemeteor.ui.components.LoadingScreen
 import com.acms.cinemeteor.ui.theme.CinemeteorTheme
 import com.acms.cinemeteor.utils.ImageUtils
 import com.acms.cinemeteor.utils.LanguageUtils
+import com.google.accompanist.swiperefresh.SwipeRefresh
+import com.google.accompanist.swiperefresh.SwipeRefreshIndicator
+import com.google.accompanist.swiperefresh.rememberSwipeRefreshState
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
@@ -123,74 +126,75 @@ fun FilmDetailsScreen(movie: Movie) {
     var reviews by remember { mutableStateOf<List<Review>>(emptyList()) }
     var isLoadingSimilarMovies by remember { mutableStateOf(false) }
     var isLoadingReviews by remember { mutableStateOf(false) }
+    var isRefreshing by remember { mutableStateOf(false) }
+    var isInitialLoad by remember { mutableStateOf(true) }
+    
+    // Swipe refresh state
+    val swipeRefreshState = rememberSwipeRefreshState(isRefreshing = isRefreshing)
+    
+    // Function to refresh all movie data
+    suspend fun refreshMovieData(isManualRefresh: Boolean = false) {
+        if (apiKey.isNotEmpty() && apiKey != "\"\"") {
+            if (isManualRefresh) {
+                isRefreshing = true
+            }
+            val languageCode = LanguageUtils.getLanguageCode(context)
+            
+            try {
+                // Refresh movie details
+                isLoadingMovieDetails = true
+                val refreshResult = repository.getMovieDetailsWithFallback(apiKey, movie.id, languageCode)
+                refreshResult.onSuccess { updatedMovie ->
+                    currentMovie = updatedMovie
+                    isSaved = LocalSavedMovies.isMovieSaved(context, updatedMovie.id)
+                    isLoadingMovieDetails = false
+                    Log.d("FilmActivity", "Movie details refreshed: title='${updatedMovie.title}'")
+                }.onFailure {
+                    isLoadingMovieDetails = false
+                }
+                
+                // Refresh similar movies
+                isLoadingSimilarMovies = true
+                val similarResult = repository.getSimilarMovies(apiKey, movie.id, languageCode, 1)
+                similarResult.onSuccess { movies ->
+                    similarMovies = movies.take(10)
+                    isLoadingSimilarMovies = false
+                    Log.d("FilmActivity", "Loaded ${similarMovies.size} similar movies")
+                }.onFailure {
+                    isLoadingSimilarMovies = false
+                }
+                
+                // Refresh reviews
+                isLoadingReviews = true
+                val reviewsResult = repository.getMovieReviews(apiKey, movie.id, languageCode, 1)
+                reviewsResult.onSuccess { reviewsResponse ->
+                    reviews = reviewsResponse.results.take(5)
+                    isLoadingReviews = false
+                    Log.d("FilmActivity", "Loaded ${reviews.size} reviews")
+                }.onFailure {
+                    isLoadingReviews = false
+                }
+            } catch (e: Exception) {
+                Log.e("FilmActivity", "Exception refreshing movie data", e)
+                isLoadingMovieDetails = false
+                isLoadingSimilarMovies = false
+                isLoadingReviews = false
+            } finally {
+                if (isManualRefresh) {
+                    isRefreshing = false
+                }
+                if (isInitialLoad) {
+                    isInitialLoad = false
+                }
+            }
+        }
+    }
     
     // Refresh movie details with current language when screen loads (with English fallback)
     LaunchedEffect(Unit) {
-        if (apiKey.isNotEmpty() && apiKey != "\"\"") {
-            isLoadingMovieDetails = true
-            val languageCode = LanguageUtils.getLanguageCode(context)
-            Log.d("FilmActivity", "Refreshing movie ${movie.id} with language: $languageCode (with English fallback)")
-            try {
-                val refreshResult = repository.getMovieDetailsWithFallback(apiKey, movie.id, languageCode)
-                refreshResult.onSuccess { updatedMovie ->
-                    Log.d("FilmActivity", "Movie details refreshed: title='${updatedMovie.title}', overview length=${updatedMovie.overview.length}")
-                    currentMovie = updatedMovie
-                    // Update saved status
-                    isSaved = LocalSavedMovies.isMovieSaved(context, updatedMovie.id)
-                    isLoadingMovieDetails = false
-                }.onFailure { exception ->
-                    Log.e("FilmActivity", "Failed to refresh movie details: ${exception.message}")
-                    // Keep original movie if refresh fails
-                    isLoadingMovieDetails = false
-                }
-            } catch (e: Exception) {
-                Log.e("FilmActivity", "Exception refreshing movie details", e)
-                isLoadingMovieDetails = false
-            }
-        }
-        
-        // Fetch similar movies and reviews
-        if (apiKey.isNotEmpty() && apiKey != "\"\"") {
-            val languageCode = LanguageUtils.getLanguageCode(context)
-            
-            // Fetch similar movies
-            lifecycleOwner.lifecycleScope.launch(Dispatchers.IO) {
-                isLoadingSimilarMovies = true
-                try {
-                    val similarResult = repository.getSimilarMovies(apiKey, movie.id, languageCode, 1)
-                    similarResult.onSuccess { movies ->
-                        similarMovies = movies.take(10) // Limit to 10 similar movies
-                        isLoadingSimilarMovies = false
-                        Log.d("FilmActivity", "Loaded ${similarMovies.size} similar movies")
-                    }.onFailure { exception ->
-                        Log.e("FilmActivity", "Failed to load similar movies: ${exception.message}")
-                        isLoadingSimilarMovies = false
-                    }
-                } catch (e: Exception) {
-                    Log.e("FilmActivity", "Exception loading similar movies", e)
-                    isLoadingSimilarMovies = false
-                }
-            }
-            
-            // Fetch reviews
-            lifecycleOwner.lifecycleScope.launch(Dispatchers.IO) {
-                isLoadingReviews = true
-                try {
-                    val reviewsResult = repository.getMovieReviews(apiKey, movie.id, languageCode, 1)
-                    reviewsResult.onSuccess { reviewsResponse ->
-                        reviews = reviewsResponse.results.take(5) // Limit to 5 reviews
-                        isLoadingReviews = false
-                        Log.d("FilmActivity", "Loaded ${reviews.size} reviews")
-                    }.onFailure { exception ->
-                        Log.e("FilmActivity", "Failed to load reviews: ${exception.message}")
-                        isLoadingReviews = false
-                    }
-                } catch (e: Exception) {
-                    Log.e("FilmActivity", "Exception loading reviews", e)
-                    isLoadingReviews = false
-                }
-            }
-        }
+        val languageCode = LanguageUtils.getLanguageCode(context)
+        Log.d("FilmActivity", "Loading movie ${movie.id} with language: $languageCode")
+        refreshMovieData(isManualRefresh = false)
     }
 
 
@@ -201,9 +205,9 @@ fun FilmDetailsScreen(movie: Movie) {
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.background)
     ) {
-        // Loading screen overlay while fetching movie details
+        // Loading screen overlay while fetching movie details (initial load only)
         LoadingScreen(
-            isLoading = isLoadingMovieDetails,
+            isLoading = isLoadingMovieDetails && isInitialLoad,
             message = null,
             modifier = Modifier.fillMaxSize()
         )
@@ -224,12 +228,29 @@ fun FilmDetailsScreen(movie: Movie) {
         )
 
 
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .verticalScroll(rememberScrollState())
-                .padding(16.dp)
+        SwipeRefresh(
+            state = swipeRefreshState,
+            onRefresh = {
+                lifecycleOwner.lifecycleScope.launch(Dispatchers.IO) {
+                    refreshMovieData(isManualRefresh = true)
+                }
+            },
+            indicator = { state, trigger ->
+                SwipeRefreshIndicator(
+                    state = state,
+                    refreshTriggerDistance = trigger,
+                    backgroundColor = MaterialTheme.colorScheme.surface,
+                    contentColor = MaterialTheme.colorScheme.primary
+                )
+            },
+            modifier = Modifier.fillMaxSize()
         ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .verticalScroll(rememberScrollState())
+                    .padding(16.dp)
+            ) {
 
             AsyncImage(
                 model = posterUrl ?: R.drawable.background_screen,
@@ -420,12 +441,12 @@ fun FilmDetailsScreen(movie: Movie) {
                     .fillMaxWidth()
                     .padding(horizontal = 4.dp)
                     .height(50.dp)
-            ) {
-                Text(
-                    "Play",
-                    fontSize = 18.sp,
-                    color = MaterialTheme.colorScheme.onPrimary
-                )
+                ) {
+                    Text(
+                        "Play",
+                        fontSize = 18.sp,
+                        color = MaterialTheme.colorScheme.onPrimary
+                    )
             }
 
             Spacer(modifier = Modifier.height(20.dp))
@@ -533,6 +554,7 @@ fun FilmDetailsScreen(movie: Movie) {
                 Spacer(modifier = Modifier.height(24.dp))
             }
         }
+    }
     }
 }
 
