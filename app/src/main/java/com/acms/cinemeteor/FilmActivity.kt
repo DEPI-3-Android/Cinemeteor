@@ -12,6 +12,7 @@ import androidx.activity.enableEdgeToEdge
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.lifecycleScope
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -22,11 +23,15 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -47,11 +52,13 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import com.acms.cinemeteor.BuildConfig
 import com.acms.cinemeteor.models.Movie
+import com.acms.cinemeteor.models.Review
 import com.acms.cinemeteor.repository.MovieRepository
 import com.acms.cinemeteor.ui.components.LoadingScreen
 import com.acms.cinemeteor.ui.theme.CinemeteorTheme
@@ -112,6 +119,10 @@ fun FilmDetailsScreen(movie: Movie) {
         mutableStateOf(LocalSavedMovies.isMovieSaved(context, currentMovie.id))
     }
     var isLoadingMovieDetails by remember { mutableStateOf(false) }
+    var similarMovies by remember { mutableStateOf<List<Movie>>(emptyList()) }
+    var reviews by remember { mutableStateOf<List<Review>>(emptyList()) }
+    var isLoadingSimilarMovies by remember { mutableStateOf(false) }
+    var isLoadingReviews by remember { mutableStateOf(false) }
     
     // Refresh movie details with current language when screen loads (with English fallback)
     LaunchedEffect(Unit) {
@@ -135,6 +146,49 @@ fun FilmDetailsScreen(movie: Movie) {
             } catch (e: Exception) {
                 Log.e("FilmActivity", "Exception refreshing movie details", e)
                 isLoadingMovieDetails = false
+            }
+        }
+        
+        // Fetch similar movies and reviews
+        if (apiKey.isNotEmpty() && apiKey != "\"\"") {
+            val languageCode = LanguageUtils.getLanguageCode(context)
+            
+            // Fetch similar movies
+            lifecycleOwner.lifecycleScope.launch(Dispatchers.IO) {
+                isLoadingSimilarMovies = true
+                try {
+                    val similarResult = repository.getSimilarMovies(apiKey, movie.id, languageCode, 1)
+                    similarResult.onSuccess { movies ->
+                        similarMovies = movies.take(10) // Limit to 10 similar movies
+                        isLoadingSimilarMovies = false
+                        Log.d("FilmActivity", "Loaded ${similarMovies.size} similar movies")
+                    }.onFailure { exception ->
+                        Log.e("FilmActivity", "Failed to load similar movies: ${exception.message}")
+                        isLoadingSimilarMovies = false
+                    }
+                } catch (e: Exception) {
+                    Log.e("FilmActivity", "Exception loading similar movies", e)
+                    isLoadingSimilarMovies = false
+                }
+            }
+            
+            // Fetch reviews
+            lifecycleOwner.lifecycleScope.launch(Dispatchers.IO) {
+                isLoadingReviews = true
+                try {
+                    val reviewsResult = repository.getMovieReviews(apiKey, movie.id, languageCode, 1)
+                    reviewsResult.onSuccess { reviewsResponse ->
+                        reviews = reviewsResponse.results.take(5) // Limit to 5 reviews
+                        isLoadingReviews = false
+                        Log.d("FilmActivity", "Loaded ${reviews.size} reviews")
+                    }.onFailure { exception ->
+                        Log.e("FilmActivity", "Failed to load reviews: ${exception.message}")
+                        isLoadingReviews = false
+                    }
+                } catch (e: Exception) {
+                    Log.e("FilmActivity", "Exception loading reviews", e)
+                    isLoadingReviews = false
+                }
             }
         }
     }
@@ -404,6 +458,173 @@ fun FilmDetailsScreen(movie: Movie) {
             }
 
             Spacer(modifier = Modifier.height(24.dp))
+            
+            // Similar Movies Section
+            if (similarMovies.isNotEmpty() || isLoadingSimilarMovies) {
+                Text(
+                    text = "Similar Movies",
+                    style = MaterialTheme.typography.titleLarge.copy(
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onBackground
+                    ),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 4.dp, vertical = 8.dp)
+                )
+                
+                if (isLoadingSimilarMovies) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(220.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            "Loading similar movies...",
+                            color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f)
+                        )
+                    }
+                } else if (similarMovies.isNotEmpty()) {
+                    LazyRow(
+                        horizontalArrangement = Arrangement.spacedBy(12.dp),
+                        modifier = Modifier.padding(vertical = 8.dp)
+                    ) {
+                        items(similarMovies) { similarMovie ->
+                            SimilarMovieItem(movie = similarMovie, context = context)
+                        }
+                    }
+                }
+                
+                Spacer(modifier = Modifier.height(24.dp))
+            }
+            
+            // Reviews Section
+            if (reviews.isNotEmpty() || isLoadingReviews) {
+                Text(
+                    text = "Reviews",
+                    style = MaterialTheme.typography.titleLarge.copy(
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onBackground
+                    ),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 4.dp, vertical = 8.dp)
+                )
+                
+                if (isLoadingReviews) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 16.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            "Loading reviews...",
+                            color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f)
+                        )
+                    }
+                } else if (reviews.isNotEmpty()) {
+                    reviews.forEach { review ->
+                        ReviewItem(review = review)
+                        Spacer(modifier = Modifier.height(12.dp))
+                    }
+                }
+                
+                Spacer(modifier = Modifier.height(24.dp))
+            }
+        }
+    }
+}
+
+@Composable
+fun SimilarMovieItem(movie: Movie, context: android.content.Context) {
+    val posterUrl = movie.posterPath?.let { ImageUtils.getPosterUrl(it) }
+    
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        modifier = Modifier
+            .width(120.dp)
+            .clickable {
+                val intent = Intent(context, FilmActivity::class.java)
+                intent.putExtra("movie", movie)
+                context.startActivity(intent)
+            }
+    ) {
+        AsyncImage(
+            model = posterUrl ?: R.drawable.background_screen,
+            contentDescription = movie.title,
+            modifier = Modifier
+                .width(120.dp)
+                .height(180.dp)
+                .clip(shape = RoundedCornerShape(12.dp)),
+            contentScale = ContentScale.Crop,
+            placeholder = painterResource(id = R.drawable.background_screen),
+            error = painterResource(id = R.drawable.background_screen)
+        )
+        Spacer(modifier = Modifier.height(8.dp))
+        Text(
+            text = movie.title,
+            fontSize = 12.sp,
+            maxLines = 2,
+            overflow = TextOverflow.Ellipsis,
+            textAlign = TextAlign.Center,
+            color = MaterialTheme.colorScheme.onBackground,
+            modifier = Modifier.width(120.dp)
+        )
+    }
+}
+
+@Composable
+fun ReviewItem(review: Review) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 4.dp),
+        shape = RoundedCornerShape(12.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.8f)
+        )
+    ) {
+        Column(
+            modifier = Modifier.padding(12.dp)
+        ) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = review.author,
+                    style = MaterialTheme.typography.titleMedium.copy(
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onBackground
+                    )
+                )
+                review.authorDetails?.rating?.let { rating ->
+                    Text(
+                        text = "⭐ ${String.format("%.1f", rating)}",
+                        fontSize = 14.sp,
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                }
+            }
+            
+            if (review.createdAt != null) {
+                Spacer(modifier = Modifier.height(4.dp))
+                Text(
+                    text = review.createdAt.take(10), // Show just the date part
+                    fontSize = 12.sp,
+                    color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f)
+                )
+            }
+            
+            Spacer(modifier = Modifier.height(8.dp))
+            Text(
+                text = review.content,
+                fontSize = 14.sp,
+                color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.9f),
+                lineHeight = 20.sp
+            )
         }
     }
 }

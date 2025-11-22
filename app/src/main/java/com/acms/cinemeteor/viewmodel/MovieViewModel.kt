@@ -180,15 +180,19 @@ class MovieViewModel(application: Application) : AndroidViewModel(application) {
     
     /**
      * Reloads all movies (trending and popular) with current language
+     * Clears search query and results to ensure fresh data
      */
     fun reloadMovies() {
         Log.d("MovieViewModel", "Reloading all movies with language: ${getLanguage()}")
+        // Clear search query and results first
+        _uiState.value = _uiState.value.copy(
+            searchQuery = "",
+            searchResults = emptyList(),
+            error = null // Clear any previous errors
+        )
+        // Reload trending and popular movies with current language
         loadTrendingMovies()
         loadPopularMovies()
-        // Clear search results when reloading
-        if (_uiState.value.searchQuery.isNotBlank()) {
-            _uiState.value = _uiState.value.copy(searchResults = emptyList())
-        }
     }
 }
 

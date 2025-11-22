@@ -34,6 +34,8 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
+import com.google.accompanist.swiperefresh.SwipeRefresh
+import com.google.accompanist.swiperefresh.rememberSwipeRefreshState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -92,16 +94,30 @@ fun MoviesHomeScreen(
         delay(500) // Wait 500ms after user stops typing
         viewModel.searchMovies(searchText)
     }
+    
+    // Track manual refresh state (when user swipes to refresh)
+    var isManualRefresh by remember { mutableStateOf(false) }
+    
+    // Pull to refresh state
+    val isRefreshing = uiState.isLoadingTrending || uiState.isLoadingPopular
+    val swipeRefreshState = rememberSwipeRefreshState(isRefreshing = isRefreshing)
+    
+    // Update manual refresh state when refreshing completes
+    LaunchedEffect(isRefreshing) {
+        if (!isRefreshing && isManualRefresh) {
+            isManualRefresh = false
+        }
+    }
 
     // Determine if we should show loading screen
-    // Show loading if we're loading initial data (trending and popular) and both are empty
-    // Hide loading once at least one list has data (even if the other is still loading)
+    // Show loading if:
+    // 1. Initial load: loading and both lists are empty AND not searching
+    // 2. Manual refresh: user swiped to refresh (isManualRefresh is true)
     // Don't show loading during search (only show small indicator in search section)
-    val showLoadingScreen = (uiState.isLoadingTrending || uiState.isLoadingPopular) &&
-            uiState.trendingMovies.isEmpty() &&
-            uiState.popularMovies.isEmpty() &&
-            uiState.searchQuery.isBlank() &&
-            uiState.searchResults.isEmpty()
+    val isInitialLoad = uiState.trendingMovies.isEmpty() && uiState.popularMovies.isEmpty() &&
+            uiState.searchQuery.isBlank() && uiState.searchResults.isEmpty()
+    val showLoadingScreen = (isRefreshing && isInitialLoad) || 
+            (isManualRefresh && isRefreshing && uiState.searchQuery.isBlank())
 
     Box(modifier = Modifier.fillMaxSize()) {
         // Loading screen overlay
@@ -137,12 +153,23 @@ fun MoviesHomeScreen(
             },
             containerColor = Color.Transparent
         ) { padding ->
-            LazyColumn(
+            SwipeRefresh(
+                state = swipeRefreshState,
+                onRefresh = {
+                    // Clear search when refreshing manually
+                    searchText = ""
+                    isManualRefresh = true
+                    // Reload all movies (trending, popular, and clear search)
+                    viewModel.reloadMovies()
+                },
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(padding)
+            ) {
+                LazyColumn(
                     contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
                     verticalArrangement = Arrangement.spacedBy(6.dp),
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(padding)
+                    modifier = Modifier.fillMaxSize()
                 ) {
                     // Show error banner if there's an error
                     if (uiState.error != null) {
@@ -358,6 +385,7 @@ fun MoviesHomeScreen(
             }
         }
     }
+}
 
 @Composable  
 fun MoviePosterItem(movie: Movie) {

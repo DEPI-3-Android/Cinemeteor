@@ -5,6 +5,7 @@ import com.acms.cinemeteor.api.RetrofitClient
 import com.acms.cinemeteor.models.Movie
 import com.acms.cinemeteor.models.MovieResponse
 import com.acms.cinemeteor.models.MovieVideosResponse
+import com.acms.cinemeteor.models.MovieReviewsResponse
 import retrofit2.Response
 
 class MovieRepository {
@@ -200,6 +201,51 @@ class MovieRepository {
             }
         } catch (e: Exception) {
             Log.e("MovieRepository", "Exception loading movie videos", e)
+            Result.failure(e)
+        }
+    }
+    
+    suspend fun getSimilarMovies(apiKey: String, movieId: Int, language: String = "en-US", page: Int = 1): Result<List<Movie>> {
+        return try {
+            Log.d("MovieRepository", "Fetching similar movies for movie ID: $movieId with language: $language")
+            val response = apiService.getSimilarMovies(movieId, apiKey, page, language)
+            Log.d("MovieRepository", "Similar movies response: code=${response.code()}, isSuccess=${response.isSuccessful}")
+            if (response.isSuccessful) {
+                val movies = response.body()?.results ?: emptyList()
+                Log.d("MovieRepository", "Similar movies loaded successfully: ${movies.size} movies")
+                Result.success(movies)
+            } else {
+                val errorMsg = "API Error: ${response.code()} - ${response.message()}"
+                Log.e("MovieRepository", errorMsg)
+                Result.failure(Exception(errorMsg))
+            }
+        } catch (e: Exception) {
+            Log.e("MovieRepository", "Exception loading similar movies", e)
+            Result.failure(e)
+        }
+    }
+    
+    suspend fun getMovieReviews(apiKey: String, movieId: Int, language: String = "en-US", page: Int = 1): Result<MovieReviewsResponse> {
+        return try {
+            Log.d("MovieRepository", "Fetching reviews for movie ID: $movieId with language: $language")
+            val response = apiService.getMovieReviews(movieId, apiKey, page, language)
+            Log.d("MovieRepository", "Movie reviews response: code=${response.code()}, isSuccess=${response.isSuccessful}")
+            if (response.isSuccessful) {
+                val reviewsResponse = response.body()
+                if (reviewsResponse != null) {
+                    Log.d("MovieRepository", "Movie reviews loaded successfully: ${reviewsResponse.results.size} reviews")
+                    Result.success(reviewsResponse)
+                } else {
+                    Log.e("MovieRepository", "Movie reviews response body is null")
+                    Result.failure(Exception("No reviews found"))
+                }
+            } else {
+                val errorMsg = "API Error: ${response.code()} - ${response.message()}"
+                Log.e("MovieRepository", errorMsg)
+                Result.failure(Exception(errorMsg))
+            }
+        } catch (e: Exception) {
+            Log.e("MovieRepository", "Exception loading movie reviews", e)
             Result.failure(e)
         }
     }

@@ -25,6 +25,8 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
+import com.google.accompanist.swiperefresh.SwipeRefresh
+import com.google.accompanist.swiperefresh.rememberSwipeRefreshState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -224,9 +226,9 @@ fun SavedFilmsScreen(modifier: Modifier = Modifier) {
 
     var savedMovies by remember { mutableStateOf(LocalSavedMovies.getSavedMovies(context)) }
     var isRefreshing by remember { mutableStateOf(false) }
-
-    // Refresh movies with current language when screen loads
-    LaunchedEffect(Unit) {
+    
+    // Function to refresh movies
+    suspend fun refreshMovies() {
         if (apiKey.isNotEmpty() && apiKey != "\"\"") {
             isRefreshing = true
             try {
@@ -251,28 +253,64 @@ fun SavedFilmsScreen(modifier: Modifier = Modifier) {
         }
     }
 
+    // Track initial load to show full screen loading only on first load
+    var isInitialLoad by remember { mutableStateOf(true) }
+    
+    // Track manual refresh state (when user swipes to refresh)
+    var isManualRefresh by remember { mutableStateOf(false) }
+    
+    // Refresh movies with current language when screen loads
+    LaunchedEffect(Unit) {
+        refreshMovies()
+        // Mark initial load as complete after first refresh
+        kotlinx.coroutines.delay(100)
+        isInitialLoad = false
+    }
+    
+    // Update manual refresh state when refreshing completes
+    LaunchedEffect(isRefreshing) {
+        if (!isRefreshing && isManualRefresh) {
+            isManualRefresh = false
+        }
+    }
+    
+    // Pull to refresh state
+    val swipeRefreshState = rememberSwipeRefreshState(isRefreshing = isRefreshing)
+
     Box(modifier = modifier.fillMaxSize()) {
-        // Loading screen overlay while refreshing movies
+        // Loading screen overlay - show on initial load OR during manual refresh
         LoadingScreen(
-            isLoading = isRefreshing,
+            isLoading = (isInitialLoad && isRefreshing) || (isManualRefresh && isRefreshing),
             message = null,
             modifier = Modifier.fillMaxSize()
         )
 
-        if (savedMovies.isEmpty() && !isRefreshing) {
-            Box(
-                modifier = Modifier.fillMaxSize(),
-                contentAlignment = Alignment.Center
-            ) {
-                Text("No saved movies yet")
-            }
-        } else {
-            LazyVerticalGrid(
-                columns = GridCells.Fixed(2),
-                modifier = Modifier.padding(10.dp),
-                horizontalArrangement = Arrangement.spacedBy(10.dp),
-                verticalArrangement = Arrangement.spacedBy(10.dp)
-            ) {
+        SwipeRefresh(
+            state = swipeRefreshState,
+            onRefresh = {
+                // Mark as manual refresh to show loading overlay
+                isManualRefresh = true
+                // Refresh all favorite movies with current language
+                CoroutineScope(Dispatchers.IO).launch {
+                    refreshMovies()
+                }
+            },
+            modifier = Modifier.fillMaxSize()
+        ) {
+            if (savedMovies.isEmpty() && !isRefreshing && !isInitialLoad) {
+                Box(
+                    modifier = Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text("No saved movies yet")
+                }
+            } else {
+                LazyVerticalGrid(
+                    columns = GridCells.Fixed(2),
+                    modifier = Modifier.padding(10.dp),
+                    horizontalArrangement = Arrangement.spacedBy(10.dp),
+                    verticalArrangement = Arrangement.spacedBy(10.dp)
+                ) {
                 items(savedMovies) { movie ->
                     MovieFavItem(
                         movie = movie,
@@ -283,6 +321,7 @@ fun SavedFilmsScreen(modifier: Modifier = Modifier) {
                                 savedMovies = LocalSavedMovies.getSavedMovies(context)
                             }
                     )
+                }
                 }
             }
         }
