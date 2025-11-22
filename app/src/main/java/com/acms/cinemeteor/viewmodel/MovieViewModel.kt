@@ -1,11 +1,13 @@
 package com.acms.cinemeteor.viewmodel
 
+import android.app.Application
 import android.util.Log
-import androidx.lifecycle.ViewModel
+import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.acms.cinemeteor.BuildConfig
 import com.acms.cinemeteor.models.Movie
 import com.acms.cinemeteor.repository.MovieRepository
+import com.acms.cinemeteor.utils.LanguageUtils
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -25,12 +27,16 @@ data class MovieUiState(
         get() = isLoadingTrending || isLoadingPopular || isLoadingSearch
 }
 
-class MovieViewModel : ViewModel() {
+class MovieViewModel(application: Application) : AndroidViewModel(application) {
     private val repository = MovieRepository()
     private val apiKey = BuildConfig.TMDB_API_KEY.trim()
     
     private val _uiState = MutableStateFlow(MovieUiState())
     val uiState: StateFlow<MovieUiState> = _uiState.asStateFlow()
+    
+    private fun getLanguage(): String {
+        return LanguageUtils.getLanguageCode(getApplication())
+    }
     
     init {
         Log.d("MovieViewModel", "Initializing ViewModel")
@@ -58,11 +64,12 @@ class MovieViewModel : ViewModel() {
             return
         }
         
+        val language = getLanguage()
         viewModelScope.launch {
             try {
-                Log.d("MovieViewModel", "Loading trending movies...")
+                Log.d("MovieViewModel", "Loading trending movies with language: $language...")
                 _uiState.value = _uiState.value.copy(isLoadingTrending = true, error = null)
-                repository.getTrendingMovies(apiKey)
+                repository.getTrendingMovies(apiKey, language)
                     .onSuccess { movies ->
                         Log.d("MovieViewModel", "Trending movies loaded successfully: ${movies.size} movies")
                         _uiState.value = _uiState.value.copy(
@@ -93,11 +100,12 @@ class MovieViewModel : ViewModel() {
             return
         }
         
+        val language = getLanguage()
         viewModelScope.launch {
             try {
-                Log.d("MovieViewModel", "Loading popular movies...")
+                Log.d("MovieViewModel", "Loading popular movies with language: $language...")
                 _uiState.value = _uiState.value.copy(isLoadingPopular = true, error = null)
-                repository.getPopularMovies(apiKey)
+                repository.getPopularMovies(apiKey, language)
                     .onSuccess { movies ->
                         Log.d("MovieViewModel", "Popular movies loaded successfully: ${movies.size} movies")
                         _uiState.value = _uiState.value.copy(
@@ -136,11 +144,12 @@ class MovieViewModel : ViewModel() {
             return
         }
         
+        val language = getLanguage()
         viewModelScope.launch {
             try {
-                Log.d("MovieViewModel", "Searching movies with query: '$query'")
+                Log.d("MovieViewModel", "Searching movies with query: '$query' and language: $language")
                 _uiState.value = _uiState.value.copy(isLoadingSearch = true, error = null)
-                repository.searchMovies(apiKey, query)
+                repository.searchMovies(apiKey, query, language)
                     .onSuccess { movies ->
                         Log.d("MovieViewModel", "Search completed: ${movies.size} movies found")
                         _uiState.value = _uiState.value.copy(
@@ -167,6 +176,19 @@ class MovieViewModel : ViewModel() {
     
     fun clearError() {
         _uiState.value = _uiState.value.copy(error = null)
+    }
+    
+    /**
+     * Reloads all movies (trending and popular) with current language
+     */
+    fun reloadMovies() {
+        Log.d("MovieViewModel", "Reloading all movies with language: ${getLanguage()}")
+        loadTrendingMovies()
+        loadPopularMovies()
+        // Clear search results when reloading
+        if (_uiState.value.searchQuery.isNotBlank()) {
+            _uiState.value = _uiState.value.copy(searchResults = emptyList())
+        }
     }
 }
 

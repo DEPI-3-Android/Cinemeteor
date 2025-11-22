@@ -60,8 +60,11 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.AsyncImage
+import android.util.Log
 import com.acms.cinemeteor.models.Movie
+import com.acms.cinemeteor.ui.components.LoadingScreen
 import com.acms.cinemeteor.utils.ImageUtils
+import com.acms.cinemeteor.utils.LanguageUtils
 import com.acms.cinemeteor.viewmodel.MovieViewModel
 import kotlinx.coroutines.delay
 
@@ -73,7 +76,15 @@ fun MoviesHomeScreen(
     val context = LocalContext.current
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
-
+    
+    // Track current language to detect changes and reload movies
+    val currentLanguage = LanguageUtils.getLanguageRaw(context)
+    
+    // Reload movies when language changes (LaunchedEffect key changes when language changes)
+    LaunchedEffect(currentLanguage) {
+        Log.d("MoviesHomeScreen", "Language detected: $currentLanguage, reloading movies...")
+        viewModel.reloadMovies()
+    }
 
     // Debounced search
     var searchText by remember { mutableStateOf("") }
@@ -82,11 +93,22 @@ fun MoviesHomeScreen(
         viewModel.searchMovies(searchText)
     }
 
-    Box(modifier = Modifier.fillMaxSize()) {
+    // Determine if we should show loading screen
+    // Show loading if we're loading initial data (trending and popular) and both are empty
+    // Hide loading once at least one list has data (even if the other is still loading)
+    // Don't show loading during search (only show small indicator in search section)
+    val showLoadingScreen = (uiState.isLoadingTrending || uiState.isLoadingPopular) &&
+            uiState.trendingMovies.isEmpty() &&
+            uiState.popularMovies.isEmpty() &&
+            uiState.searchQuery.isBlank() &&
+            uiState.searchResults.isEmpty()
 
-        Box(
-            Modifier
-                .fillMaxSize()
+    Box(modifier = Modifier.fillMaxSize()) {
+        // Loading screen overlay
+        LoadingScreen(
+            isLoading = showLoadingScreen,
+            message = null,
+            modifier = Modifier.fillMaxSize()
         )
 
         Scaffold(
@@ -115,35 +137,7 @@ fun MoviesHomeScreen(
             },
             containerColor = Color.Transparent
         ) { padding ->
-            // Show initial loading state only when everything is empty and loading
-            if (uiState.isLoading &&
-                uiState.trendingMovies.isEmpty() &&
-                uiState.popularMovies.isEmpty() &&
-                uiState.searchResults.isEmpty() &&
-                uiState.searchQuery.isBlank()
-            ) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(padding),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        CircularProgressIndicator(color = Color.White)
-                        if (uiState.error != null) {
-                            Spacer(modifier = Modifier.height(16.dp))
-                            Text(
-                                text = uiState.error ?: "Error",
-                                color = Color.Red,
-                                fontSize = 14.sp,
-                                textAlign = TextAlign.Center,
-                                modifier = Modifier.padding(horizontal = 32.dp)
-                            )
-                        }
-                    }
-                }
-            } else {
-                LazyColumn(
+            LazyColumn(
                     contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
                     verticalArrangement = Arrangement.spacedBy(6.dp),
                     modifier = Modifier
@@ -364,9 +358,8 @@ fun MoviesHomeScreen(
             }
         }
     }
-}
 
-@Composable
+@Composable  
 fun MoviePosterItem(movie: Movie) {
     val posterUrl = ImageUtils.getPosterUrl(movie.posterPath)
     val context = LocalContext.current

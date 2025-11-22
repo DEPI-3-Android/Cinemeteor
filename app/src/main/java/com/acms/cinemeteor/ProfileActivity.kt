@@ -7,6 +7,7 @@ import android.content.SharedPreferences
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -50,9 +51,19 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.core.os.LocaleListCompat
+import com.acms.cinemeteor.BuildConfig
+import com.acms.cinemeteor.ui.components.LoadingScreen
 import com.acms.cinemeteor.ui.theme.CinemeteorTheme
+import com.acms.cinemeteor.utils.LanguageUtils
 import com.google.firebase.Firebase
 import com.google.firebase.auth.auth
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.foundation.layout.Box
+import kotlinx.coroutines.suspendCancellableCoroutine
+import kotlin.coroutines.resume
 
 class ProfileActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -83,28 +94,72 @@ class ProfileActivity : ComponentActivity() {
 
 @Composable
 fun ProfileDesign(
-    modifier: Modifier = Modifier
+modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
     var showModeDialog by remember { mutableStateOf(false) }
     var showLangDialog by remember { mutableStateOf(false) }
-    if (showLangDialog) {
-        LanguageSetupDialog(
-            prefs = context.getSharedPreferences("settings", Context.MODE_PRIVATE),
-            onDismiss = { showLangDialog = false }
-        )
-    }
-    if (showModeDialog) {
-        ModeSetupDialog(
-            prefs = context.getSharedPreferences("settings", Context.MODE_PRIVATE),
-            onDismiss = { showModeDialog = false }
-        )
-    }
-
+    
+    var isLoadingUserData by remember { mutableStateOf(true) }
+    var email by remember { mutableStateOf("No email") }
+    var name by remember { mutableStateOf("User Name") }
+    var photoUrl by remember { mutableStateOf<android.net.Uri?>(null) }
+    
     val user = Firebase.auth.currentUser
-    val email = user?.email ?: "No email"
-    val name = user?.displayName ?: "User Name"
-    val photoUrl = user?.photoUrl
+    
+    // Load user data when screen loads
+    LaunchedEffect(Unit) {
+        try {
+            if (user != null) {
+                // Reload user to get latest data
+                suspendCancellableCoroutine<Unit> { continuation ->
+                    user.reload().addOnCompleteListener { reloadTask ->
+                        val currentUser = Firebase.auth.currentUser
+                        email = currentUser?.email ?: "No email"
+                        name = currentUser?.displayName ?: "User Name"
+                        photoUrl = currentUser?.photoUrl
+                        isLoadingUserData = false
+                        continuation.resume(Unit)
+                    }
+                }
+            } else {
+                // If user is null, no reload needed
+                email = "No email"
+                name = "User Name"
+                photoUrl = null
+                isLoadingUserData = false
+            }
+        } catch (e: Exception) {
+            // Fallback to current user data
+            email = user?.email ?: "No email"
+            name = user?.displayName ?: "User Name"
+            photoUrl = user?.photoUrl
+            isLoadingUserData = false
+        }
+    }
+    
+    Box(modifier = modifier.fillMaxSize()) {
+        // Loading screen overlay - shows first until all user data is loaded
+        LoadingScreen(
+            isLoading = isLoadingUserData,
+            message = null,
+            modifier = Modifier.fillMaxSize()
+        )
+        
+        // Content shown only after loading is complete
+        if (!isLoadingUserData) {
+            if (showLangDialog) {
+                LanguageSetupDialog(
+                    prefs = context.getSharedPreferences("settings", Context.MODE_PRIVATE),
+                    onDismiss = { showLangDialog = false }
+                )
+            }
+            if (showModeDialog) {
+                ModeSetupDialog(
+                    prefs = context.getSharedPreferences("settings", Context.MODE_PRIVATE),
+                    onDismiss = { showModeDialog = false }
+                )
+            }
 
     Column(
         verticalArrangement = Arrangement.Top,
@@ -200,6 +255,8 @@ fun ProfileDesign(
             text = R.string.logout,
             onClickAction = { onLogoutClick(context) }
         )
+            }
+        }
     }
 }
 
@@ -370,12 +427,64 @@ fun LanguageSetupDialog(
                     }
                     Spacer(modifier = Modifier.width(8.dp))
                     TextButton(onClick = {
-                        editor.putString("lang", selectedLang).apply()
-
-                        LanguageChangeHelper().changeLanguage(context, selectedLang)
-
-                        Handler(Looper.getMainLooper()).post {
-                            (context as? Activity)?.recreate()
+                        val previousLang = currentLang
+                        
+                        // Refresh saved movies with new language before recreating activity
+                        if (previousLang != selectedLang) {
+                            val apiKey = BuildConfig.TMDB_API_KEY.trim()
+                            if (apiKey.isNotEmpty() && apiKey != "\"\"") {
+                                // Calculate the new language code for TMDB API
+                                val newLanguageCode = when (selectedLang) {
+                                    "en" -> "en-US"
+                                    "ar" -> "ar"
+                                    else -> "en-US"
+                                }
+                                // Refresh movies with new language before changing UI language
+                                // Use withContext to properly await completion
+                                CoroutineScope(Dispatchers.IO).launch {
+                                    val refreshResult = LocalSavedMovies.refreshMoviesWithLanguage(
+                                        context,
+                                        apiKey,
+                                        newLanguageCode
+                                    )
+                                    
+                                    refreshResult.onSuccess {
+                                        Log.d("ProfileActivity", "Movies refreshed successfully, changing language...")
+                                        // After refresh completes, save language preference, change language and recreate
+                                        Handler(Looper.getMainLooper()).post {
+                                            editor.putString("lang", selectedLang).apply()
+                                            LanguageChangeHelper().changeLanguage(context, selectedLang)
+                                            onDismiss()
+                                            // Give time for SharedPreferences to persist
+                                            Handler(Looper.getMainLooper()).postDelayed({
+                                                (context as? Activity)?.recreate()
+                                            }, 500) // Increased delay to ensure everything completes
+                                        }
+                                    }.onFailure { exception ->
+                                        Log.e("ProfileActivity", "Failed to refresh movies: ${exception.message}")
+                                        // Still change language even if refresh fails
+                                        Handler(Looper.getMainLooper()).post {
+                                            editor.putString("lang", selectedLang).apply()
+                                            LanguageChangeHelper().changeLanguage(context, selectedLang)
+                                            onDismiss()
+                                            Handler(Looper.getMainLooper()).postDelayed({
+                                                (context as? Activity)?.recreate()
+                                            }, 300)
+                                        }
+                                    }
+                                }
+                            } else {
+                                // If no API key, just save language preference, change language and recreate
+                                editor.putString("lang", selectedLang).apply()
+                                LanguageChangeHelper().changeLanguage(context, selectedLang)
+                                onDismiss()
+                                Handler(Looper.getMainLooper()).post {
+                                    (context as? Activity)?.recreate()
+                                }
+                            }
+                        } else {
+                            // Language didn't change, just dismiss
+                            onDismiss()
                         }
 
                         onDismiss()

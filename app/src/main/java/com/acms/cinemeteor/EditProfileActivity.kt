@@ -39,10 +39,15 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.os.LocaleListCompat
+import com.acms.cinemeteor.ui.components.LoadingScreen
 import com.acms.cinemeteor.ui.theme.CinemeteorTheme
 import com.google.firebase.Firebase
 import com.google.firebase.auth.auth
 import com.google.firebase.auth.userProfileChangeRequest
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.foundation.layout.Box
+import kotlinx.coroutines.suspendCancellableCoroutine
+import kotlin.coroutines.resume
 
 class EditProfileActivity : ComponentActivity() {
 
@@ -76,51 +81,88 @@ class EditProfileActivity : ComponentActivity() {
 
 @Composable
 fun SettingProfile(modifier: Modifier = Modifier) {
-
     val user = Firebase.auth.currentUser
-
     val context = LocalContext.current
     val activity = context as? Activity
 
     var nameField by remember { mutableStateOf("") }
     var emailField by remember { mutableStateOf("") }
-    Column(
-        verticalArrangement = Arrangement.Top,
-        horizontalAlignment = Alignment.Start,
-        modifier = modifier
-            .padding(horizontal = 12.dp, vertical = 32.dp)
-    ) {
-        Row(
-            horizontalArrangement = Arrangement.Start,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Text(
-                text = stringResource(R.string.edit_profile),
-                style = MaterialTheme.typography.headlineMedium,
-                fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.secondary,
-                modifier = Modifier
-                    .padding(start = 8.dp, top = 8.dp)
-                    .weight(1f, true)
-            )
+    var isLoadingUserData by remember { mutableStateOf(true) }
+    
+    // Load user data when screen loads
+    LaunchedEffect(Unit) {
+        try {
+            if (user != null) {
+                // Reload user to get latest data
+                suspendCancellableCoroutine<Unit> { continuation ->
+                    user.reload().addOnCompleteListener { reloadTask ->
+                        val currentUser = Firebase.auth.currentUser
+                        nameField = currentUser?.displayName ?: ""
+                        emailField = currentUser?.email ?: ""
+                        isLoadingUserData = false
+                        continuation.resume(Unit)
+                    }
+                }
+            } else {
+                // If user is null, no reload needed
+                nameField = ""
+                emailField = ""
+                isLoadingUserData = false
+            }
+        } catch (e: Exception) {
+            // Fallback to current user data
+            nameField = user?.displayName ?: ""
+            emailField = user?.email ?: ""
+            isLoadingUserData = false
         }
     }
-    Column(
-        verticalArrangement = Arrangement.Top,
-        horizontalAlignment = Alignment.Start,
-        modifier = modifier
-            .fillMaxSize()
-            .padding(horizontal = 12.dp)
-            .padding(top = 32.dp)
-    ) {
-
-        Column(
-            verticalArrangement = Arrangement.Top,
-            horizontalAlignment = Alignment.CenterHorizontally,
-            modifier = modifier
-                .fillMaxWidth()
-                .padding(horizontal = 12.dp, vertical = 28.dp)
-        ) {
+    
+    Box(modifier = modifier.fillMaxSize()) {
+        // Loading screen overlay - shows first until all user data is loaded
+        LoadingScreen(
+            isLoading = isLoadingUserData,
+            message = null,
+            modifier = Modifier.fillMaxSize()
+        )
+        
+        // Content shown only after loading is complete
+        if (!isLoadingUserData) {
+                    Column(
+                verticalArrangement = Arrangement.Top,
+                horizontalAlignment = Alignment.Start,
+                modifier = Modifier
+                    .padding(horizontal = 12.dp, vertical = 32.dp)
+            ) {
+                Row(
+                    horizontalArrangement = Arrangement.Start,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = stringResource(R.string.edit_profile),
+                        style = MaterialTheme.typography.headlineMedium,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.secondary,
+                        modifier = Modifier
+                            .padding(start = 8.dp, top = 8.dp)
+                            .weight(1f, true)
+                    )
+                }
+            }
+            Column(
+                verticalArrangement = Arrangement.Top,
+                horizontalAlignment = Alignment.Start,
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(horizontal = 12.dp)
+                    .padding(top = 32.dp)
+            ) {
+                Column(
+                    verticalArrangement = Arrangement.Top,
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 12.dp, vertical = 28.dp)
+                ) {
             Image(
                 painter = painterResource(R.drawable.user),
                 contentDescription = "Profile icon",
@@ -157,11 +199,11 @@ fun SettingProfile(modifier: Modifier = Modifier) {
                     .fillMaxWidth()
             )
         }
-        Row(
-            modifier = Modifier.weight(1f, true),
-            verticalAlignment = Alignment.Bottom
-        ) {
-            Button(
+                Row(
+                    modifier = Modifier.weight(1f, true),
+                    verticalAlignment = Alignment.Bottom
+                ) {
+                    Button(
                 onClick = {
                     val profileUpdates = userProfileChangeRequest {
                         displayName = nameField
@@ -187,8 +229,10 @@ fun SettingProfile(modifier: Modifier = Modifier) {
                 Text(
                     text = stringResource(R.string.save),
                     fontSize = 16.sp
-                )
+                    )
+                }
             }
+        }
         }
     }
 }

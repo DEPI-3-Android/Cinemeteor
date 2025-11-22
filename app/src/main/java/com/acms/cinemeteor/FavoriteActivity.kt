@@ -26,6 +26,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -46,11 +47,23 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
+import android.util.Log
+import com.acms.cinemeteor.BuildConfig
 import com.acms.cinemeteor.models.Movie
+import com.acms.cinemeteor.repository.MovieRepository
+import com.acms.cinemeteor.ui.components.LoadingScreen
 import com.acms.cinemeteor.ui.theme.CinemeteorTheme
 import com.acms.cinemeteor.utils.ImageUtils
+import com.acms.cinemeteor.utils.LanguageUtils
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.awaitAll
 
 class FavouriteActivity : ComponentActivity() {
     @OptIn(ExperimentalMaterial3Api::class)
@@ -135,38 +148,142 @@ object LocalSavedMovies {
         val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
         prefs.edit().remove(KEY_SAVED_MOVIES).apply()
     }
+    
+    /**
+     * Refreshes all saved movies with the current language from SharedPreferences
+     * Fetches updated movie details for each saved movie and updates them concurrently
+     */
+    suspend fun refreshMoviesWithLanguage(
+        context: Context,
+        apiKey: String,
+        language: String
+    ): Result<Unit> {
+        return try {
+            val savedMovies = getSavedMovies(context)
+            if (savedMovies.isEmpty()) {
+                Log.d("LocalSavedMovies", "No saved movies to refresh")
+                return Result.success(Unit)
+            }
+            
+            Log.d("LocalSavedMovies", "Refreshing ${savedMovies.size} saved movies with language: $language")
+            val repository = MovieRepository()
+            
+            // Fetch updated details for each movie concurrently using async
+            val updatedMovies = coroutineScope {
+                savedMovies.map { movie ->
+                    async {
+                        // Use getMovieDetailsWithFallback to ensure title/overview are filled
+                        val result = repository.getMovieDetailsWithFallback(apiKey, movie.id, language)
+                        result.fold(
+                            onSuccess = { updatedMovie: Movie ->
+                                Log.d("LocalSavedMovies", "Updated movie ${movie.id}: ${updatedMovie.title}")
+                                updatedMovie
+                            },
+                            onFailure = { exception: Throwable ->
+                                Log.e("LocalSavedMovies", "Failed to update movie ${movie.id}: ${exception.message}")
+                                // Keep original movie if update fails
+                                movie
+                            }
+                        )
+                    }
+                }.awaitAll()
+            }
+            
+            // Save updated movies
+            if (updatedMovies.isNotEmpty()) {
+                saveMoviesList(context, updatedMovies)
+                Log.d("LocalSavedMovies", "Successfully refreshed ${updatedMovies.size} movies with language: $language")
+            }
+            
+            // Small delay to ensure data is persisted
+            kotlinx.coroutines.delay(100)
+            
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Log.e("LocalSavedMovies", "Exception refreshing movies", e)
+            Result.failure(e)
+        }
+    }
+    
+    /**
+     * Refreshes all saved movies using the current language from SharedPreferences
+     */
+    suspend fun refreshMoviesWithCurrentLanguage(
+        context: Context,
+        apiKey: String
+    ): Result<Unit> {
+        val language = LanguageUtils.getLanguageCode(context)
+        return refreshMoviesWithLanguage(context, apiKey, language)
+    }
 }
 
 @Composable
 fun SavedFilmsScreen(modifier: Modifier = Modifier) {
     val context = LocalContext.current
+    val apiKey = BuildConfig.TMDB_API_KEY.trim()
 
     var savedMovies by remember { mutableStateOf(LocalSavedMovies.getSavedMovies(context)) }
+    var isRefreshing by remember { mutableStateOf(false) }
 
-    if (savedMovies.isEmpty()) {
-        Box(
-            modifier = Modifier.fillMaxSize(),
-            contentAlignment = Alignment.Center
-        ) {
-            Text("No saved movies yet")
+    // Refresh movies with current language when screen loads
+    LaunchedEffect(Unit) {
+        if (apiKey.isNotEmpty() && apiKey != "\"\"") {
+            isRefreshing = true
+            try {
+                val refreshResult = LocalSavedMovies.refreshMoviesWithCurrentLanguage(context, apiKey)
+                refreshResult.onSuccess {
+                    // Small delay to ensure data is persisted before reading
+                    kotlinx.coroutines.delay(150)
+                    savedMovies = LocalSavedMovies.getSavedMovies(context)
+                    isRefreshing = false
+                    Log.d("SavedFilmsScreen", "Movies refreshed successfully with language: ${LanguageUtils.getLanguageCode(context)}")
+                }.onFailure { exception ->
+                    Log.e("SavedFilmsScreen", "Failed to refresh movies: ${exception.message}")
+                    // Keep current movies if refresh fails, but still update the list
+                    savedMovies = LocalSavedMovies.getSavedMovies(context)
+                    isRefreshing = false
+                }
+            } catch (e: Exception) {
+                Log.e("SavedFilmsScreen", "Exception refreshing movies", e)
+                savedMovies = LocalSavedMovies.getSavedMovies(context)
+                isRefreshing = false
+            }
         }
-    } else {
-        LazyVerticalGrid(
-            columns = GridCells.Fixed(2),
-            modifier = modifier.padding(10.dp),
-            horizontalArrangement = Arrangement.spacedBy(10.dp),
-            verticalArrangement = Arrangement.spacedBy(10.dp)
-        ) {
-            items(savedMovies) { movie ->
-                MovieFavItem(
-                    movie = movie,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clickable {
-                            LocalSavedMovies.toggleMovie(context, movie)
-                            savedMovies = LocalSavedMovies.getSavedMovies(context)
-                        }
-                )
+    }
+
+    Box(modifier = modifier.fillMaxSize()) {
+        // Loading screen overlay while refreshing movies
+        LoadingScreen(
+            isLoading = isRefreshing,
+            message = null,
+            modifier = Modifier.fillMaxSize()
+        )
+
+        if (savedMovies.isEmpty() && !isRefreshing) {
+            Box(
+                modifier = Modifier.fillMaxSize(),
+                contentAlignment = Alignment.Center
+            ) {
+                Text("No saved movies yet")
+            }
+        } else {
+            LazyVerticalGrid(
+                columns = GridCells.Fixed(2),
+                modifier = Modifier.padding(10.dp),
+                horizontalArrangement = Arrangement.spacedBy(10.dp),
+                verticalArrangement = Arrangement.spacedBy(10.dp)
+            ) {
+                items(savedMovies) { movie ->
+                    MovieFavItem(
+                        movie = movie,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable {
+                                LocalSavedMovies.toggleMovie(context, movie)
+                                savedMovies = LocalSavedMovies.getSavedMovies(context)
+                            }
+                    )
+                }
             }
         }
     }

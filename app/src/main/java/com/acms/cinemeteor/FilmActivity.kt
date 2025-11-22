@@ -1,12 +1,16 @@
 package com.acms.cinemeteor
 
 import android.content.Intent
+import android.net.Uri
 import android.os.Build
 import android.os.Bundle
+import android.util.Log
+import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.compose.foundation.BorderStroke
+import androidx.lifecycle.compose.LocalLifecycleOwner
+import androidx.lifecycle.lifecycleScope
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -26,11 +30,11 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -46,9 +50,15 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
+import com.acms.cinemeteor.BuildConfig
 import com.acms.cinemeteor.models.Movie
+import com.acms.cinemeteor.repository.MovieRepository
+import com.acms.cinemeteor.ui.components.LoadingScreen
 import com.acms.cinemeteor.ui.theme.CinemeteorTheme
 import com.acms.cinemeteor.utils.ImageUtils
+import com.acms.cinemeteor.utils.LanguageUtils
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 
 
 class FilmActivity : ComponentActivity() {
@@ -89,11 +99,44 @@ class FilmActivity : ComponentActivity() {
 
 @Composable
 fun FilmDetailsScreen(movie: Movie) {
-    val posterUrl = movie.posterPath?.let { ImageUtils.getPosterUrl(it) }
-    var expanded by remember { mutableStateOf(false) }
     val context = LocalContext.current
+    val lifecycleOwner = LocalLifecycleOwner.current
+    val repository = remember { MovieRepository() }
+    val apiKey = BuildConfig.TMDB_API_KEY.trim()
+    
+    // State for the current movie (can be refreshed with new language)
+    var currentMovie by remember { mutableStateOf(movie) }
+    val posterUrl = currentMovie.posterPath?.let { ImageUtils.getPosterUrl(it) }
+    var expanded by remember { mutableStateOf(false) }
     var isSaved by remember {
-        mutableStateOf(LocalSavedMovies.isMovieSaved(context, movie.id))
+        mutableStateOf(LocalSavedMovies.isMovieSaved(context, currentMovie.id))
+    }
+    var isLoadingMovieDetails by remember { mutableStateOf(false) }
+    
+    // Refresh movie details with current language when screen loads (with English fallback)
+    LaunchedEffect(Unit) {
+        if (apiKey.isNotEmpty() && apiKey != "\"\"") {
+            isLoadingMovieDetails = true
+            val languageCode = LanguageUtils.getLanguageCode(context)
+            Log.d("FilmActivity", "Refreshing movie ${movie.id} with language: $languageCode (with English fallback)")
+            try {
+                val refreshResult = repository.getMovieDetailsWithFallback(apiKey, movie.id, languageCode)
+                refreshResult.onSuccess { updatedMovie ->
+                    Log.d("FilmActivity", "Movie details refreshed: title='${updatedMovie.title}', overview length=${updatedMovie.overview.length}")
+                    currentMovie = updatedMovie
+                    // Update saved status
+                    isSaved = LocalSavedMovies.isMovieSaved(context, updatedMovie.id)
+                    isLoadingMovieDetails = false
+                }.onFailure { exception ->
+                    Log.e("FilmActivity", "Failed to refresh movie details: ${exception.message}")
+                    // Keep original movie if refresh fails
+                    isLoadingMovieDetails = false
+                }
+            } catch (e: Exception) {
+                Log.e("FilmActivity", "Exception refreshing movie details", e)
+                isLoadingMovieDetails = false
+            }
+        }
     }
 
 
@@ -104,6 +147,12 @@ fun FilmDetailsScreen(movie: Movie) {
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.background)
     ) {
+        // Loading screen overlay while fetching movie details
+        LoadingScreen(
+            isLoading = isLoadingMovieDetails,
+            message = null,
+            modifier = Modifier.fillMaxSize()
+        )
 
         AsyncImage(
             model = posterUrl ?: R.drawable.background_screen,
@@ -130,7 +179,7 @@ fun FilmDetailsScreen(movie: Movie) {
 
             AsyncImage(
                 model = posterUrl ?: R.drawable.background_screen,
-                contentDescription = movie.title,
+                contentDescription = currentMovie.title,
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(400.dp)
@@ -145,7 +194,7 @@ fun FilmDetailsScreen(movie: Movie) {
 
 
             Text(
-                text = movie.title.ifEmpty { "No Title" },
+                text = currentMovie.title.ifEmpty { "No Title" },
                 style = MaterialTheme.typography.headlineSmall.copy(
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.onBackground
@@ -166,7 +215,7 @@ fun FilmDetailsScreen(movie: Movie) {
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    text = "⭐ ${movie.voteAverage}",
+                    text = "⭐ ${currentMovie.voteAverage}",
                     color = MaterialTheme.colorScheme.primary,
                     fontSize = 20.sp,
                     fontWeight = FontWeight.Medium
@@ -174,9 +223,9 @@ fun FilmDetailsScreen(movie: Movie) {
 
                 Row {
                     IconButton(onClick = {
-                        LocalSavedMovies.toggleMovie(context, movie)
+                        LocalSavedMovies.toggleMovie(context, currentMovie)
 
-                        isSaved = LocalSavedMovies.isMovieSaved(context, movie.id)
+                        isSaved = LocalSavedMovies.isMovieSaved(context, currentMovie.id)
                     }) {
                         Icon(
                             painter = painterResource(
@@ -192,7 +241,7 @@ fun FilmDetailsScreen(movie: Movie) {
                             type = "text/plain"
                             putExtra(
                                 Intent.EXTRA_TEXT,
-                                "Check out this movie: ${movie.title}\n\n${movie.overview}"
+                                "Check out this movie: ${currentMovie.title}\n\n${currentMovie.overview}"
                             )
                         }
                         context.startActivity(
@@ -211,49 +260,124 @@ fun FilmDetailsScreen(movie: Movie) {
             Spacer(modifier = Modifier.height(20.dp))
 
 
-            Row(
+            Button(
+                onClick = {
+                    // Fetch and play trailer
+                    if (apiKey.isNotEmpty() && apiKey != "\"\"") {
+                        lifecycleOwner.lifecycleScope.launch(Dispatchers.IO) {
+                            try {
+                                val languageCode = LanguageUtils.getLanguageCode(context)
+                                val rawLanguageCode = LanguageUtils.getLanguageRaw(context) // "ar" or "en"
+                                Log.d("FilmActivity", "Fetching trailers for movie ${currentMovie.id} with language: $rawLanguageCode (API: $languageCode)")
+                                
+                                val videosResult = repository.getMovieVideos(apiKey, currentMovie.id, languageCode)
+                                videosResult.onSuccess { videosResponse ->
+                                    // Filter all YouTube trailers
+                                    val allTrailers = videosResponse.results.filter { video ->
+                                        video.type == "Trailer" && video.site == "YouTube"
+                                    }
+                                    
+                                    Log.d("FilmActivity", "Found ${allTrailers.size} YouTube trailers")
+                                    
+                                    // First, try to find a trailer matching the selected language
+                                    var trailer = allTrailers.firstOrNull { video ->
+                                        val videoLang = video.iso6391?.lowercase()?.take(2) // Take first 2 chars (ar, en)
+                                        videoLang == rawLanguageCode.lowercase()
+                                    }
+                                    
+                                    // If found, log it
+                                    if (trailer != null) {
+                                        Log.d("FilmActivity", "Found trailer in $rawLanguageCode: ${trailer.name} (lang: ${trailer.iso6391})")
+                                    } else {
+                                        // Fallback: Try to find any trailer in the API language
+                                        trailer = allTrailers.firstOrNull { video ->
+                                            val apiLangCode = languageCode.take(2).lowercase() // "en" from "en-US" or "ar" from "ar"
+                                            video.iso6391?.lowercase()?.take(2) == apiLangCode
+                                        }
+                                        
+                                        if (trailer != null) {
+                                            Log.d("FilmActivity", "Using trailer in API language: ${trailer.name} (lang: ${trailer.iso6391})")
+                                        } else {
+                                            // Final fallback: use any trailer
+                                            trailer = allTrailers.firstOrNull()
+                                            if (trailer != null) {
+                                                Log.d("FilmActivity", "No $rawLanguageCode trailer found, using any trailer: ${trailer.name} (lang: ${trailer.iso6391})")
+                                            }
+                                        }
+                                    }
+                                    
+                                    if (trailer != null) {
+                                        val youtubeUrl = "https://www.youtube.com/watch?v=${trailer.key}"
+                                        // Switch to main thread to start activity
+                                        launch(Dispatchers.Main) {
+                                            val intent = Intent(Intent.ACTION_VIEW, Uri.parse(youtubeUrl))
+                                            intent.setPackage("com.google.android.youtube")
+                                            // Try YouTube app first, fallback to browser
+                                            if (intent.resolveActivity(context.packageManager) != null) {
+                                                context.startActivity(intent)
+                                            } else {
+                                                // Fallback to web browser
+                                                val webIntent = Intent(Intent.ACTION_VIEW, Uri.parse(youtubeUrl))
+                                                context.startActivity(webIntent)
+                                            }
+                                        }
+                                    } else {
+                                        launch(Dispatchers.Main) {
+                                            Toast.makeText(
+                                                context,
+                                                "No trailer available for this movie",
+                                                Toast.LENGTH_SHORT
+                                            ).show()
+                                        }
+                                    }
+                                }.onFailure { exception ->
+                                    Log.e("FilmActivity", "Failed to fetch trailer", exception)
+                                    launch(Dispatchers.Main) {
+                                        Toast.makeText(
+                                            context,
+                                            "Failed to load trailer: ${exception.message}",
+                                            Toast.LENGTH_SHORT
+                                        ).show()
+                                    }
+                                }
+                            } catch (e: Exception) {
+                                Log.e("FilmActivity", "Exception fetching trailer", e)
+                                launch(Dispatchers.Main) {
+                                    Toast.makeText(
+                                        context,
+                                        "Error loading trailer",
+                                        Toast.LENGTH_SHORT
+                                    ).show()
+                                }
+                            }
+                        }
+                    } else {
+                        Toast.makeText(
+                            context,
+                            "API key not configured",
+                            Toast.LENGTH_SHORT
+                        ).show()
+                    }
+                },
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = MaterialTheme.colorScheme.primary
+                ),
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 4.dp),
-                horizontalArrangement = Arrangement.SpaceEvenly
+                    .padding(horizontal = 4.dp)
+                    .height(50.dp)
             ) {
-                Button(
-                    onClick = { /* TODO: Play */ },
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = MaterialTheme.colorScheme.primary
-                    ),
-                    modifier = Modifier
-                        .weight(1f)
-                        .height(50.dp)
-                ) {
-                    Text(
-                        "Play",
-                        fontSize = 18.sp,
-                        color = MaterialTheme.colorScheme.onPrimary
-                    )
-                }
-
-                Spacer(modifier = Modifier.width(16.dp))
-
-                OutlinedButton(
-                    onClick = { /* TODO: Download */ },
-                    border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary),
-                    modifier = Modifier
-                        .weight(1f)
-                        .height(50.dp)
-                ) {
-                    Text(
-                        "Download",
-                        fontSize = 18.sp,
-                        color = MaterialTheme.colorScheme.primary
-                    )
-                }
+                Text(
+                    "Play",
+                    fontSize = 18.sp,
+                    color = MaterialTheme.colorScheme.onPrimary
+                )
             }
 
             Spacer(modifier = Modifier.height(20.dp))
 
 
-            val overview = movie.overview.ifEmpty { "No description available." }
+            val overview = currentMovie.overview.ifEmpty { "No description available." }
             val shortText = if (overview.length > 120 && !expanded) {
                 overview.take(120) + "..."
             } else overview
