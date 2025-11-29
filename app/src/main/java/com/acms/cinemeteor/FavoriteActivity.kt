@@ -50,7 +50,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import android.util.Log
-import androidx.appcompat.app.AppCompatActivity
 import com.acms.cinemeteor.BuildConfig
 import com.acms.cinemeteor.models.Movie
 import com.acms.cinemeteor.repository.MovieRepository
@@ -68,7 +67,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.awaitAll
 
-class FavouriteActivity : AppCompatActivity() {
+class FavouriteActivity : ComponentActivity() {
     @OptIn(ExperimentalMaterial3Api::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -105,14 +104,21 @@ class FavouriteActivity : AppCompatActivity() {
 object LocalSavedMovies {
 
     private const val PREFS_NAME = "cinemeteor_prefs"
-    private const val KEY_SAVED_MOVIES = "saved_movies"
+    private fun getKey(context: Context): String {
+        val settings = context.getSharedPreferences("settings", Context.MODE_PRIVATE)
+        val uid = settings.getString("current_user_uid", null)  // save UID when user logs in
+        return if (uid != null) "saved_movies_$uid" else "saved_movies_guest"
+    }
+
 
     private val gson = Gson()
 
 
     fun getSavedMovies(context: Context): List<Movie> {
         val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
-        val json = prefs.getString(KEY_SAVED_MOVIES, null) ?: return emptyList()
+        val key = getKey(context)
+        val json = prefs.getString(key, null) ?: return emptyList()
+
         val type = object : TypeToken<List<Movie>>() {}.type
         return gson.fromJson(json, type)
     }
@@ -120,7 +126,8 @@ object LocalSavedMovies {
 
     private fun saveMoviesList(context: Context, movies: List<Movie>) {
         val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
-        prefs.edit().putString(KEY_SAVED_MOVIES, gson.toJson(movies)).apply()
+        val key = getKey(context)  // <-- get the per-user key
+        prefs.edit().putString(key, gson.toJson(movies)).apply()
     }
 
 
@@ -149,9 +156,10 @@ object LocalSavedMovies {
 
     fun clearAll(context: Context) {
         val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
-        prefs.edit().remove(KEY_SAVED_MOVIES).apply()
+        val key = getKey(context)  // use the per-user key
+        prefs.edit().remove(key).apply()
     }
-    
+
     /**
      * Refreshes all saved movies with the current language from SharedPreferences
      * Fetches updated movie details for each saved movie and updates them concurrently
@@ -167,10 +175,10 @@ object LocalSavedMovies {
                 Log.d("LocalSavedMovies", "No saved movies to refresh")
                 return Result.success(Unit)
             }
-            
+
             Log.d("LocalSavedMovies", "Refreshing ${savedMovies.size} saved movies with language: $language")
             val repository = MovieRepository()
-            
+
             // Fetch updated details for each movie concurrently using async
             val updatedMovies = coroutineScope {
                 savedMovies.map { movie ->
@@ -191,23 +199,23 @@ object LocalSavedMovies {
                     }
                 }.awaitAll()
             }
-            
+
             // Save updated movies
             if (updatedMovies.isNotEmpty()) {
                 saveMoviesList(context, updatedMovies)
                 Log.d("LocalSavedMovies", "Successfully refreshed ${updatedMovies.size} movies with language: $language")
             }
-            
+
             // Small delay to ensure data is persisted
             kotlinx.coroutines.delay(100)
-            
+
             Result.success(Unit)
         } catch (e: Exception) {
             Log.e("LocalSavedMovies", "Exception refreshing movies", e)
             Result.failure(e)
         }
     }
-    
+
     /**
      * Refreshes all saved movies using the current language from SharedPreferences
      */
@@ -227,7 +235,7 @@ fun SavedFilmsScreen(modifier: Modifier = Modifier) {
 
     var savedMovies by remember { mutableStateOf(LocalSavedMovies.getSavedMovies(context)) }
     var isRefreshing by remember { mutableStateOf(false) }
-    
+
     // Function to refresh movies
     suspend fun refreshMovies() {
         if (apiKey.isNotEmpty() && apiKey != "\"\"") {
@@ -256,10 +264,10 @@ fun SavedFilmsScreen(modifier: Modifier = Modifier) {
 
     // Track initial load to show full screen loading only on first load
     var isInitialLoad by remember { mutableStateOf(true) }
-    
+
     // Track manual refresh state (when user swipes to refresh)
     var isManualRefresh by remember { mutableStateOf(false) }
-    
+
     // Refresh movies with current language when screen loads
     LaunchedEffect(Unit) {
         refreshMovies()
@@ -267,14 +275,14 @@ fun SavedFilmsScreen(modifier: Modifier = Modifier) {
         kotlinx.coroutines.delay(100)
         isInitialLoad = false
     }
-    
+
     // Update manual refresh state when refreshing completes
     LaunchedEffect(isRefreshing) {
         if (!isRefreshing && isManualRefresh) {
             isManualRefresh = false
         }
     }
-    
+
     // Pull to refresh state
     val swipeRefreshState = rememberSwipeRefreshState(isRefreshing = isRefreshing)
 
@@ -312,17 +320,17 @@ fun SavedFilmsScreen(modifier: Modifier = Modifier) {
                     horizontalArrangement = Arrangement.spacedBy(10.dp),
                     verticalArrangement = Arrangement.spacedBy(10.dp)
                 ) {
-                items(savedMovies) { movie ->
-                    MovieFavItem(
-                        movie = movie,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clickable {
-                                LocalSavedMovies.toggleMovie(context, movie)
-                                savedMovies = LocalSavedMovies.getSavedMovies(context)
-                            }
-                    )
-                }
+                    items(savedMovies) { movie ->
+                        MovieFavItem(
+                            movie = movie,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clickable {
+                                    LocalSavedMovies.toggleMovie(context, movie)
+                                    savedMovies = LocalSavedMovies.getSavedMovies(context)
+                                }
+                        )
+                    }
                 }
             }
         }

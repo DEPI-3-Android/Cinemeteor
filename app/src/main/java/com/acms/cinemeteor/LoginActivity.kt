@@ -160,27 +160,34 @@ private fun checkProfile(context: Context) {
 }
 
 private fun onLoginClick(context: Context, emailField: String, passwordField: String) {
-    val auth = Firebase.auth
+    lateinit var auth: FirebaseAuth
+    auth = Firebase.auth
     auth.signInWithEmailAndPassword(emailField, passwordField)
         .addOnCompleteListener { task ->
             if (task.isSuccessful) {
                 val oldUser = auth.currentUser
-                if (oldUser != null && oldUser.isEmailVerified) checkProfile(context)
-                else if (oldUser != null && !oldUser.isEmailVerified) Toast.makeText(
-                    context,
-                    R.string.verification_required,
-                    Toast.LENGTH_LONG
-                ).show()
-            } else {
-                val exception = task.exception
-                Toast.makeText(
-                    context,
-                    exception?.localizedMessage ?: context.getString(R.string.login_failed),
-                    Toast.LENGTH_LONG
-                ).show()
+
+                if (oldUser != null && oldUser.isEmailVerified) {
+
+                    // ⭐ SAVE USER UID HERE
+                    val prefs = context.getSharedPreferences("settings", Context.MODE_PRIVATE)
+                    prefs.edit().putString("current_user_uid", oldUser.uid).apply()
+
+                    Log.d("LoginScreen", "Login Successful")
+
+                    // Redirect
+                    val I = Intent(context, MainActivity::class.java)
+                    I.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+                    context.startActivity(I)
+                } else if (oldUser != null && !oldUser.isEmailVerified) {
+                    Log.w("LoginScreen", "Verification Required")
+                    Toast.makeText(context, R.string.verification_required, Toast.LENGTH_LONG)
+                        .show()
+                }
             }
         }
 }
+
 
 suspend fun loginWithGoogle(credential: Credential): AuthResult? {
     if (credential is CustomCredential && credential.type == GoogleIdTokenCredential.TYPE_GOOGLE_ID_TOKEN_CREDENTIAL) {
