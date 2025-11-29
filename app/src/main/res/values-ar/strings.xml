@@ -3,12 +3,12 @@
     <string name="app_name">CineMeteor</string>
     <string name="welcome_back">مرحبا بعودتك إلى</string>
     <string name="welcome">مرحبا بك في</string>
-    <string name="new_user">مستخدم جديد؟ </string>
+    <string name="new_user">ليس لديك حساب ؟</string>
     <string name="signup_now">انشئ حساب!</string>
-    <string name="old_user">لديك حساب بالفعل؟ </string>
+    <string name="old_user">لديك حساب بالفعل ؟</string>
     <string name="login_now">"سجل الدخول!"</string>
-    <string name="forget_password">نسيت كلمة المرور؟ </string>
-    <string name="clickhere">"اضغط هنا!"</string>
+    <string name="forget_password">نسيت كلمة المرور ؟</string>
+    <string name="click_here">"اضغط هنا!"</string>
     <string name="login">تسجيل الدخول</string>
     <string name="sign_up">إنشاء حساب</string>
     <string name="email">البريد الإلكتروني</string>
@@ -33,7 +33,7 @@
     <string name="about">عن المطورين</string>
     <string name="wishlist">المفضلة</string>
     <string name="edit_profile">تعديل الملف الشخصي</string>
-     <string name="notifications">الاشعارات</string>
+    <string name="notifications">الاشعارات</string>
     <string name="search_movies">بحث عن فيلم</string>
     <string name="trending_now">رائج الآن</string>
     <string name="movie_title">فيلم</string>
@@ -55,5 +55,10 @@
     <string name="google">جوجل</string>
     <string name="no_trending">لا توجد أفلام رائجة الآن</string>
     <string name="no_popular">لا توجد أفلام شهيرة متاحة</string>
-
+    <string name="create_account">إنشاء حساب</string>
+    <string name="verification_sent">افتح صندوق الوارد</string>
+    <string name="nonexistent_account">الحساب غير موجود. يرجى التسجيل أولاً</string>
+    <string name="verification_failed">فشل إرسال بريد التحقق</string>
+    <string name="signup_failed">فشل التسجيل</string>
+    <string name="fill_profile">من فضلك، املأ ملفك الشخصي</string>
 </resources>

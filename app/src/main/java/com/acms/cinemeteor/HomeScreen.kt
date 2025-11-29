@@ -34,6 +34,8 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
+import com.google.accompanist.swiperefresh.SwipeRefresh
+import com.google.accompanist.swiperefresh.rememberSwipeRefreshState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -60,8 +62,11 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.AsyncImage
+import android.util.Log
 import com.acms.cinemeteor.models.Movie
+import com.acms.cinemeteor.ui.components.LoadingScreen
 import com.acms.cinemeteor.utils.ImageUtils
+import com.acms.cinemeteor.utils.LanguageUtils
 import com.acms.cinemeteor.viewmodel.MovieViewModel
 import kotlinx.coroutines.delay
 
@@ -73,7 +78,15 @@ fun MoviesHomeScreen(
     val context = LocalContext.current
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
-
+    
+    // Track current language to detect changes and reload movies
+    val currentLanguage = LanguageUtils.getLanguageRaw(context)
+    
+    // Reload movies when language changes (LaunchedEffect key changes when language changes)
+    LaunchedEffect(currentLanguage) {
+        Log.d("MoviesHomeScreen", "Language detected: $currentLanguage, reloading movies...")
+        viewModel.reloadMovies()
+    }
 
     // Debounced search
     var searchText by remember { mutableStateOf("") }
@@ -81,12 +94,37 @@ fun MoviesHomeScreen(
         delay(500) // Wait 500ms after user stops typing
         viewModel.searchMovies(searchText)
     }
+    
+    // Track manual refresh state (when user swipes to refresh)
+    var isManualRefresh by remember { mutableStateOf(false) }
+    
+    // Pull to refresh state
+    val isRefreshing = uiState.isLoadingTrending || uiState.isLoadingPopular
+    val swipeRefreshState = rememberSwipeRefreshState(isRefreshing = isRefreshing)
+    
+    // Update manual refresh state when refreshing completes
+    LaunchedEffect(isRefreshing) {
+        if (!isRefreshing && isManualRefresh) {
+            isManualRefresh = false
+        }
+    }
+
+    // Determine if we should show loading screen
+    // Show loading if:
+    // 1. Initial load: loading and both lists are empty AND not searching
+    // 2. Manual refresh: user swiped to refresh (isManualRefresh is true)
+    // Don't show loading during search (only show small indicator in search section)
+    val isInitialLoad = uiState.trendingMovies.isEmpty() && uiState.popularMovies.isEmpty() &&
+            uiState.searchQuery.isBlank() && uiState.searchResults.isEmpty()
+    val showLoadingScreen = (isRefreshing && isInitialLoad) || 
+            (isManualRefresh && isRefreshing && uiState.searchQuery.isBlank())
 
     Box(modifier = Modifier.fillMaxSize()) {
-
-        Box(
-            Modifier
-                .fillMaxSize()
+        // Loading screen overlay
+        LoadingScreen(
+            isLoading = showLoadingScreen,
+            message = null,
+            modifier = Modifier.fillMaxSize()
         )
 
         Scaffold(
@@ -115,40 +153,23 @@ fun MoviesHomeScreen(
             },
             containerColor = Color.Transparent
         ) { padding ->
-            // Show initial loading state only when everything is empty and loading
-            if (uiState.isLoading &&
-                uiState.trendingMovies.isEmpty() &&
-                uiState.popularMovies.isEmpty() &&
-                uiState.searchResults.isEmpty() &&
-                uiState.searchQuery.isBlank()
+            SwipeRefresh(
+                state = swipeRefreshState,
+                onRefresh = {
+                    // Clear search when refreshing manually
+                    searchText = ""
+                    isManualRefresh = true
+                    // Reload all movies (trending, popular, and clear search)
+                    viewModel.reloadMovies()
+                },
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(padding)
             ) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(padding),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        CircularProgressIndicator(color = Color.White)
-                        if (uiState.error != null) {
-                            Spacer(modifier = Modifier.height(16.dp))
-                            Text(
-                                text = uiState.error ?: "Error",
-                                color = Color.Red,
-                                fontSize = 14.sp,
-                                textAlign = TextAlign.Center,
-                                modifier = Modifier.padding(horizontal = 32.dp)
-                            )
-                        }
-                    }
-                }
-            } else {
                 LazyColumn(
                     contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
                     verticalArrangement = Arrangement.spacedBy(6.dp),
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(padding)
+                    modifier = Modifier.fillMaxSize()
                 ) {
                     // Show error banner if there's an error
                     if (uiState.error != null) {
@@ -366,7 +387,7 @@ fun MoviesHomeScreen(
     }
 }
 
-@Composable
+@Composable  
 fun MoviePosterItem(movie: Movie) {
     val posterUrl = ImageUtils.getPosterUrl(movie.posterPath)
     val context = LocalContext.current
@@ -459,7 +480,7 @@ fun MovieGridItem(
 }
 
 
-@Preview(showBackground = true)
+@Preview(showBackground = true , showSystemUi = true)
 @Composable
 fun PreviewMoviesHomeScreen() {
     MoviesHomeScreen()
