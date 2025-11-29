@@ -62,13 +62,23 @@ private fun onLoginClick(context: Context, emailField: String, passwordField: St
                 val oldUser = auth.currentUser
 
                 if (oldUser != null && oldUser.isEmailVerified) {
+
+                    // ⭐ SAVE USER UID HERE
+                    val prefs = context.getSharedPreferences("settings", Context.MODE_PRIVATE)
+                    prefs.edit().putString("current_user_uid", oldUser.uid).apply()
+
                     Log.d("LoginScreen", "Login Successful")
+<<<<<<< Updated upstream
                     // Saving the logged in State
                     val myPrefs = context.getSharedPreferences("MyAppPrefs" , Context.MODE_PRIVATE)
                     with(myPrefs.edit()) {
                         putBoolean("isLoggedIn" , true)
                         apply() // Saves the changes
                     }
+=======
+
+                    // Redirect
+>>>>>>> Stashed changes
                     val I = Intent(context, MainActivity::class.java)
                     I.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
                     context.startActivity(I)
