@@ -117,8 +117,7 @@ fun SettingProfile(modifier: Modifier = Modifier) {
                 onError = { msg ->
                     Toast.makeText(context, msg, Toast.LENGTH_SHORT).show()
                     isLoading = false
-
-        }
+                }
             )
         }
     }
@@ -261,10 +260,11 @@ fun uploadToImgBBAndFirebase(
     })
 }
 
+
 @Composable
 fun LoadingDialog(show: Boolean) {
     if (show) {
-        Dialog(onDismissRequest = {  }) {
+        Dialog(onDismissRequest = { }) {
             Box(
                 contentAlignment = Alignment.Center,
                 modifier = Modifier
@@ -273,9 +273,7 @@ fun LoadingDialog(show: Boolean) {
                     .background(MaterialTheme.colorScheme.surface)
                     .padding(16.dp)
             ) {
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    CircularProgressIndicator()
-                }
+                CircularProgressIndicator()
             }
         }
     }
