@@ -29,7 +29,7 @@ android {
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
-        
+
         // Load TMDB API key from local.properties
         val tmdbApiKey = localProperties.getProperty("TMDB_API_KEY", "").trim()
         if (tmdbApiKey.isNotEmpty()) {
@@ -39,8 +39,17 @@ android {
             buildConfigField("String", "TMDB_API_KEY", "\"\"")
             println("WARNING: TMDB_API_KEY not found in local.properties!")
         }
+
+        val imgbbApiKey = localProperties.getProperty("IMGBB_API_KEY", "").trim()
+        if (imgbbApiKey.isNotEmpty()) {
+            buildConfigField("String", "IMGBB_API_KEY", "\"$imgbbApiKey\"")
+            println("IMGBB_API_KEY loaded successfully (length: ${imgbbApiKey.length})")
+        } else {
+            buildConfigField("String", "IMGBB_API_KEY", "\"\"")
+            println("WARNING: IMGBB_API_KEY not found in local.properties!")
+        }
     }
-    
+
     buildFeatures {
         compose = true
         buildConfig = true
@@ -85,16 +94,22 @@ dependencies {
     androidTestImplementation(libs.androidx.compose.ui.test.junit4)
     debugImplementation(libs.androidx.compose.ui.tooling)
     debugImplementation(libs.androidx.compose.ui.test.manifest)
-    implementation(platform("com.google.firebase:firebase-bom:34.4.0"))
-    implementation("com.google.firebase:firebase-auth")
-    implementation("com.google.firebase:firebase-analytics")
     implementation("androidx.core:core-splashscreen:1.0.0")
     implementation("androidx.compose.animation:animation")
     implementation("io.coil-kt:coil-compose:2.6.0")
     implementation("androidx.cardview:cardview:1.0.0")
     implementation("androidx.constraintlayout:constraintlayout:2.1.4")
     implementation("androidx.compose.material:material-icons-extended:1.7.8")
-    implementation("com.google.accompanist:accompanist-systemuicontroller:0.27.0")
+    implementation("com.google.accompanist:accompanist-systemuicontroller:0.36.0")
+
+
+    // Firebase
+    implementation(platform("com.google.firebase:firebase-bom:34.5.0"))
+    implementation("com.google.firebase:firebase-auth")
+    implementation("com.google.firebase:firebase-analytics")
+
+
+
 
 
 
