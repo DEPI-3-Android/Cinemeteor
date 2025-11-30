@@ -48,7 +48,7 @@ android {
 
     buildTypes {
         release {
-            isMinifyEnabled = false
+            isMinifyEnabled = true
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
@@ -120,7 +120,8 @@ dependencies {
     implementation(platform(libs.firebase.bom))
     implementation("com.google.firebase:firebase-auth")
     implementation("com.google.firebase:firebase-analytics")
-    implementation("androidx.core:core-splashscreen:1.0.0")
+    implementation("com.google.firebase:firebase-firestore")
+    implementation("androidx.core:core-splashscreen:1.0.1")
     implementation("androidx.compose.animation:animation")
     implementation("io.coil-kt:coil-compose:2.6.0")
     implementation("androidx.cardview:cardview:1.0.0")
@@ -128,6 +129,11 @@ dependencies {
     implementation("androidx.compose.material:material-icons-extended:1.7.8")
     implementation("com.google.accompanist:accompanist-systemuicontroller:0.27.0")
     implementation("com.google.accompanist:accompanist-swiperefresh:0.27.0")
+    implementation("androidx.appcompat:appcompat:1.7.1")
+    implementation("androidx.appcompat:appcompat-resources:1.7.1")
+    implementation("androidx.credentials:credentials-play-services-auth:1.3.0")
+    implementation("androidx.credentials:credentials:1.3.0")
+    implementation("com.google.android.libraries.identity.googleid:googleid:1.1.1")
 
 
 

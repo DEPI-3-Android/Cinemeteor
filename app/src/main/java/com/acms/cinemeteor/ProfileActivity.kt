@@ -11,6 +11,7 @@ import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
@@ -65,7 +66,7 @@ import androidx.compose.foundation.layout.Box
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlin.coroutines.resume
 
-class ProfileActivity : ComponentActivity() {
+class ProfileActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
 
         val prefs = getSharedPreferences("settings", Context.MODE_PRIVATE)
@@ -91,11 +92,20 @@ class ProfileActivity : ComponentActivity() {
         }
     }
 }
-
+private fun onLogoutClick(context: Context) {
+    val auth = Firebase.auth
+    val authPrefs = context.getSharedPreferences("AuthPrefs", Context.MODE_PRIVATE)
+    with(authPrefs.edit()) {
+        putBoolean("isLoggedIn", false)
+        apply()
+    }
+    auth.signOut()
+    val intent = Intent(context, LoginActivity::class.java)
+    (context as? Activity)?.finishAffinity()
+    context.startActivity(intent)
+}
 @Composable
-fun ProfileDesign(
-modifier: Modifier = Modifier
-) {
+fun ProfileDesign(modifier: Modifier = Modifier) {
     val context = LocalContext.current
     var showModeDialog by remember { mutableStateOf(false) }
     var showLangDialog by remember { mutableStateOf(false) }
@@ -522,20 +532,6 @@ fun RadioButtonWithText(
         Text(text = text)
     }
 }
-
-private fun onLogoutClick(context: Context) {
-    val auth = Firebase.auth
-    val myPrefs = context.getSharedPreferences("MyAppPrefs", Context.MODE_PRIVATE)
-    with(myPrefs.edit()) {
-        putBoolean("isLoggedIn", false)
-        apply()
-    }
-    auth.signOut()
-    val intent = Intent(context, LoginActivity::class.java)
-    (context as? Activity)?.finishAffinity()
-    context.startActivity(intent)
-}
-
 @Preview(showBackground = true)
 @Composable
 fun ProfilePreview() {

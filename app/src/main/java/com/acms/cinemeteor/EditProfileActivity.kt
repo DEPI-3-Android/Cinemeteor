@@ -8,6 +8,7 @@ import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
@@ -49,11 +50,8 @@ import androidx.compose.foundation.layout.Box
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlin.coroutines.resume
 
-class EditProfileActivity : ComponentActivity() {
-
-
+class EditProfileActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
-
         val prefs = getSharedPreferences("settings", Context.MODE_PRIVATE)
         val langCode = prefs.getString("lang", "en")
         val localeList = if (langCode == "ar")
@@ -70,7 +68,7 @@ class EditProfileActivity : ComponentActivity() {
         setContent {
             CinemeteorTheme {
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    SettingProfile(
+                    EditProfileDesign(
                         modifier = Modifier.padding(innerPadding)
                     )
                 }
@@ -80,7 +78,7 @@ class EditProfileActivity : ComponentActivity() {
 }
 
 @Composable
-fun SettingProfile(modifier: Modifier = Modifier) {
+fun EditProfileDesign(modifier: Modifier = Modifier) {
     val user = Firebase.auth.currentUser
     val context = LocalContext.current
     val activity = context as? Activity
@@ -237,10 +235,10 @@ fun SettingProfile(modifier: Modifier = Modifier) {
     }
 }
 
-@Preview(showBackground = true)
+@Preview(showBackground = true , showSystemUi = true)
 @Composable
-fun SettingProfilePreview() {
+fun EditProfilePreview() {
     CinemeteorTheme {
-        SettingProfile()
+        EditProfilePreview()
     }
 }

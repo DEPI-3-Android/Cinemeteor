@@ -8,6 +8,7 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.border
@@ -42,7 +43,7 @@ import androidx.compose.ui.unit.sp
 import androidx.core.os.LocaleListCompat
 import com.acms.cinemeteor.ui.theme.CinemeteorTheme
 
-class AboutActivity : ComponentActivity() {
+class AboutActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
 
         val prefs = getSharedPreferences("settings", Context.MODE_PRIVATE)
@@ -254,7 +255,7 @@ fun DeveloperCard(
 
 //}
 
-@Preview(showBackground = true)
+@Preview(showBackground = true , showSystemUi = true)
 @Composable
 fun AboutPreview() {
     CinemeteorTheme {

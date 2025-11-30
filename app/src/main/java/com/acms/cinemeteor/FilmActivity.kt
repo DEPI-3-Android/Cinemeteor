@@ -1,5 +1,6 @@
 package com.acms.cinemeteor
 
+import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.os.Build
@@ -9,6 +10,7 @@ import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.lifecycleScope
 import androidx.compose.foundation.background
@@ -53,6 +55,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
@@ -71,18 +74,16 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
 
-class FilmActivity : ComponentActivity() {
+class FilmActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
-
         val movie: Movie? = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             intent.getParcelableExtra("movie", Movie::class.java)
         } else {
             @Suppress("DEPRECATION")
             intent.getParcelableExtra("movie") as? Movie
         }
-
         setContent {
             CinemeteorTheme {
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
@@ -106,7 +107,6 @@ class FilmActivity : ComponentActivity() {
         }
     }
 }
-
 @Composable
 fun FilmDetailsScreen(movie: Movie) {
     val context = LocalContext.current
@@ -559,7 +559,7 @@ fun FilmDetailsScreen(movie: Movie) {
 }
 
 @Composable
-fun SimilarMovieItem(movie: Movie, context: android.content.Context) {
+fun SimilarMovieItem(movie: Movie, context: Context) {
     val posterUrl = movie.posterPath?.let { ImageUtils.getPosterUrl(it) }
     
     Column(
