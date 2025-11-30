@@ -62,6 +62,30 @@ android {
     kotlinOptions {
         jvmTarget = "11"
     }
+    
+    packaging {
+        resources {
+            excludes += "/META-INF/{AL2.0,LGPL2.1}"
+            excludes += "/META-INF/LICENSE.md"
+            excludes += "/META-INF/LICENSE.txt"
+            excludes += "/META-INF/NOTICE.md"
+            excludes += "/META-INF/NOTICE.txt"
+            excludes += "/META-INF/LICENSE-notice.md"
+        }
+    }
+    
+    testOptions {
+        unitTests {
+            isReturnDefaultValues = true
+        }
+    }
+}
+
+// Configure connectedAndroidTest to handle file locking issues on Windows
+tasks.configureEach {
+    if (name.startsWith("connected") && name.endsWith("AndroidTest")) {
+        doNotTrackState("Test results may be locked by previous runs on Windows")
+    }
 }
 
 dependencies {
@@ -86,7 +110,14 @@ dependencies {
     androidTestImplementation(libs.androidx.compose.ui.test.junit4)
     debugImplementation(libs.androidx.compose.ui.tooling)
     debugImplementation(libs.androidx.compose.ui.test.manifest)
-    implementation(platform("com.google.firebase:firebase-bom:34.4.0"))
+    
+    // Testing dependencies (JUnit and MockK only)
+    androidTestImplementation(libs.kotlinx.coroutines.test)
+    androidTestImplementation(libs.androidx.core.testing)
+    androidTestImplementation(libs.androidx.rules)
+    androidTestImplementation(libs.androidx.runner)
+    androidTestImplementation(libs.mockk.android)
+    implementation(platform(libs.firebase.bom))
     implementation("com.google.firebase:firebase-auth")
     implementation("com.google.firebase:firebase-analytics")
     implementation("androidx.core:core-splashscreen:1.0.0")
