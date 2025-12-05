@@ -1,3 +1,4 @@
+import java.io.FileInputStream
 import java.util.Properties
 
 plugins {
@@ -45,6 +46,19 @@ android {
         compose = true
         buildConfig = true
     }
+    val keyStoreProperties = Properties()
+    val propertiesFile = rootProject.file("local.properties")
+    if (propertiesFile.exists()) {
+        keyStoreProperties.load(FileInputStream(propertiesFile))
+    }
+    signingConfigs {
+        create("sharedDebug") {
+            storeFile = file("debug.keystore")
+            storePassword = keyStoreProperties.getProperty("STORE_PASSWORD")
+            keyAlias = keyStoreProperties.getProperty("STORE_ALIAS")
+            keyPassword = keyStoreProperties.getProperty("KEY_PASSWORD")
+        }
+    }
 
     buildTypes {
         release {
@@ -54,6 +68,9 @@ android {
                 "proguard-rules.pro"
             )
         }
+        getByName("debug") {
+            signingConfig = signingConfigs.getByName("sharedDebug")
+        }
     }
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
@@ -61,30 +78,6 @@ android {
     }
     kotlinOptions {
         jvmTarget = "11"
-    }
-    
-    packaging {
-        resources {
-            excludes += "/META-INF/{AL2.0,LGPL2.1}"
-            excludes += "/META-INF/LICENSE.md"
-            excludes += "/META-INF/LICENSE.txt"
-            excludes += "/META-INF/NOTICE.md"
-            excludes += "/META-INF/NOTICE.txt"
-            excludes += "/META-INF/LICENSE-notice.md"
-        }
-    }
-    
-    testOptions {
-        unitTests {
-            isReturnDefaultValues = true
-        }
-    }
-}
-
-// Configure connectedAndroidTest to handle file locking issues on Windows
-tasks.configureEach {
-    if (name.startsWith("connected") && name.endsWith("AndroidTest")) {
-        doNotTrackState("Test results may be locked by previous runs on Windows")
     }
 }
 
@@ -110,14 +103,7 @@ dependencies {
     androidTestImplementation(libs.androidx.compose.ui.test.junit4)
     debugImplementation(libs.androidx.compose.ui.tooling)
     debugImplementation(libs.androidx.compose.ui.test.manifest)
-    
-    // Testing dependencies (JUnit and MockK only)
-    androidTestImplementation(libs.kotlinx.coroutines.test)
-    androidTestImplementation(libs.androidx.core.testing)
-    androidTestImplementation(libs.androidx.rules)
-    androidTestImplementation(libs.androidx.runner)
-    androidTestImplementation(libs.mockk.android)
-    implementation(platform(libs.firebase.bom))
+    implementation(platform("com.google.firebase:firebase-bom:34.6.0"))
     implementation("com.google.firebase:firebase-auth")
     implementation("com.google.firebase:firebase-analytics")
     implementation("com.google.firebase:firebase-firestore")
@@ -135,14 +121,10 @@ dependencies {
     implementation("androidx.credentials:credentials:1.3.0")
     implementation("com.google.android.libraries.identity.googleid:googleid:1.1.1")
 
-
-
     // Retrofit and networking
     implementation(libs.retrofit)
     implementation(libs.retrofit.gson)
     implementation(libs.gson)
     implementation(libs.okhttp)
     implementation(libs.okhttp.logging)
-
-
 }

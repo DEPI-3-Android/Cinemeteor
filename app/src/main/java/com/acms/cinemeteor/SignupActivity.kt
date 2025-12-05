@@ -13,7 +13,7 @@ import androidx.appcompat.app.AppCompatDelegate
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -24,8 +24,10 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Divider
@@ -34,6 +36,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
@@ -43,6 +46,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -253,12 +257,14 @@ fun RequirementItems(text: String, isExist: Boolean) {
     }
 }
 
+@Suppress("DEPRECATION")
 @Composable
 fun SignupDesign(modifier: Modifier = Modifier) {
-    var emailField by remember { mutableStateOf("") }
-    var passwordField by remember { mutableStateOf("") }
-    var confirmPasswordField by remember { mutableStateOf("") }
     val context = LocalContext.current
+    val scroll = rememberScrollState()
+    var emailField by rememberSaveable { mutableStateOf("") }
+    var passwordField by rememberSaveable { mutableStateOf("") }
+    var confirmPasswordField by rememberSaveable { mutableStateOf("") }
     val coroutineScope = rememberCoroutineScope()
     val credentialManager = CredentialManager.create(context)
     var passwordVisibility by remember { mutableStateOf(false) }
@@ -286,7 +292,7 @@ fun SignupDesign(modifier: Modifier = Modifier) {
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(color = Color.White)
+            .verticalScroll(scroll)
     ) {
         Column(
             modifier = Modifier
@@ -302,7 +308,7 @@ fun SignupDesign(modifier: Modifier = Modifier) {
             )
             Text(
                 text = buildAnnotatedString {
-                    withStyle(style = SpanStyle(color = Color.Black)) {
+                    withStyle(style = SpanStyle(color = if (isSystemInDarkTheme()) Color.White else Color.Black)) {
                         append(" ${stringResource(R.string.welcome)}")
                     }
                     withStyle(style = SpanStyle(color = Color(0xFFE21220))) {
@@ -315,7 +321,7 @@ fun SignupDesign(modifier: Modifier = Modifier) {
                 modifier = Modifier.fillMaxWidth(),
                 textAlign = TextAlign.Center
             )
-            TextField(
+            OutlinedTextField(
                 value = emailField,
                 onValueChange = { emailField = it },
                 label = { Text("${stringResource(R.string.email)}") },
@@ -325,21 +331,19 @@ fun SignupDesign(modifier: Modifier = Modifier) {
                     .padding(top = 8.dp)
                     .width(500.dp)
             )
-            TextField(
+            OutlinedTextField(
                 value = passwordField,
                 onValueChange = { passwordField = it },
                 label = { Text("${stringResource(R.string.password)}") },
                 singleLine = true,
                 modifier = Modifier
-                    .padding(top = 20.dp)
+                    .padding(top = 10.dp)
                     .width(500.dp),
                 // Upgrading Security
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
                 visualTransformation = if (passwordVisibility) {
                     VisualTransformation.None
-                } else {
-                    LastCharSignup()
-                },
+                } else LastCharSignup(),
                 trailingIcon = {
                     val image = if (passwordVisibility) {
                         R.drawable.baseline_visibility_off_24
@@ -348,9 +352,10 @@ fun SignupDesign(modifier: Modifier = Modifier) {
                     }
                     val description = if (passwordVisibility) "Hide password" else "Show password"
                     IconButton(onClick = { passwordVisibility = !passwordVisibility }) {
-                        Image(
-                            painter = painterResource(image), // 'image' comes from your if/else
-                            contentDescription = description
+                        Icon(
+                            painter = painterResource(image),
+                            contentDescription = description,
+                            tint = if (isSystemInDarkTheme()) Color.White else Color.Black
                         )
                     }
                 }
@@ -366,21 +371,19 @@ fun SignupDesign(modifier: Modifier = Modifier) {
                 )
             }
             Spacer(modifier = Modifier.height(2.dp))
-            TextField(
+            OutlinedTextField(
                 value = confirmPasswordField,
                 onValueChange = { confirmPasswordField = it },
                 label = { Text("${stringResource(R.string.confirm_password)}") },
                 singleLine = true,
                 modifier = Modifier
-                    .padding(top = 20.dp)
+                    .padding(top = 10.dp)
                     .width(500.dp),
                 // Upgrading Security
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
                 visualTransformation = if (confirmPasswordVisibility) {
                     VisualTransformation.None
-                } else {
-                    LastCharSignup()
-                },
+                } else LastCharSignup(),
                 trailingIcon = {
                     val image = if (confirmPasswordVisibility) {
                         R.drawable.baseline_visibility_off_24
@@ -392,9 +395,10 @@ fun SignupDesign(modifier: Modifier = Modifier) {
                     IconButton(onClick = {
                         confirmPasswordVisibility = !confirmPasswordVisibility
                     }) {
-                        Image(
+                        Icon(
                             painter = painterResource(image), // 'image' comes from your if/else
-                            contentDescription = description
+                            contentDescription = description,
+                            tint = if (isSystemInDarkTheme()) Color.White else Color.Black
                         )
                     }
                 }
@@ -441,7 +445,7 @@ fun SignupDesign(modifier: Modifier = Modifier) {
                         confirmPasswordField
                     )
                 },
-                enabled = emailField.isNotBlank() && passwordField.isNotBlank(),
+                enabled = emailField.isNotEmpty() && passwordField.isNotEmpty() && confirmPasswordField.isNotEmpty(),
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 12.dp, vertical = 12.dp),
@@ -465,7 +469,7 @@ fun SignupDesign(modifier: Modifier = Modifier) {
                 )
                 Text(
                     text = stringResource(R.string.or),
-                    color = Color(0xFF626262),
+                    color = if (isSystemInDarkTheme()) Color.White else Color.Black,
                     fontSize = 16.sp,
                     modifier = Modifier.padding(vertical = 4.dp, horizontal = 12.dp)
                 )
@@ -519,8 +523,8 @@ fun SignupDesign(modifier: Modifier = Modifier) {
                     .padding(horizontal = 12.dp, vertical = 12.dp),
                 shape = RoundedCornerShape(40),
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = Color.White,
-                    contentColor = Color.Black
+                    containerColor = Color.Transparent,
+                    contentColor = if (isSystemInDarkTheme()) Color.White else Color.Black
                 )
             ) {
                 Image(
@@ -541,7 +545,7 @@ fun SignupDesign(modifier: Modifier = Modifier) {
             Text(
                 fontSize = 18.sp,
                 text = buildAnnotatedString {
-                    withStyle(style = SpanStyle(color = Color.Gray)) {
+                    withStyle(style = SpanStyle(color = if (isSystemInDarkTheme()) Color.White else Color.Black)) {
                         append("${stringResource(R.string.old_user)} ")
                     }
                     withLink(
@@ -571,5 +575,7 @@ fun SignupDesign(modifier: Modifier = Modifier) {
 @Preview(showBackground = true, showSystemUi = true)
 @Composable
 private fun SignupPreview() {
-    SignupDesign()
+    CinemeteorTheme {
+        SignupDesign()
+    }
 }

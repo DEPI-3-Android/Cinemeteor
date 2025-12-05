@@ -30,16 +30,15 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.acms.cinemeteor.ui.theme.CinemeteorTheme
 import kotlinx.coroutines.launch
 
 @Composable
 fun OnboardingScreen(
-    modifier: Modifier = Modifier,
-    onFinish: () -> Unit
+    modifier: Modifier = Modifier, onFinish: () -> Unit
 ) {
     val pageState = rememberPagerState(pageCount = { onBoardingPages.size })
     val scope = rememberCoroutineScope()
-
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -55,14 +54,12 @@ fun OnboardingScreen(
         )
 
         Column(
-            modifier = modifier
-                .fillMaxSize(),
+            modifier = modifier.fillMaxSize(),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.SpaceBetween
         ) {
             HorizontalPager(
-                state = pageState,
-                modifier = Modifier.weight(1f)
+                state = pageState, modifier = Modifier.weight(1f)
             ) { page ->
                 val item = onBoardingPages[page]
 
@@ -113,7 +110,9 @@ fun OnboardingScreen(
                     onClick = {
                         if (pageState.currentPage + 1 < onBoardingPages.size) {
                             scope.launch { pageState.animateScrollToPage(pageState.currentPage + 1) }
-                        } else { onFinish() }
+                        } else {
+                            onFinish()
+                        }
                     },
                     shape = RoundedCornerShape(20),
                     modifier = Modifier
@@ -121,10 +120,8 @@ fun OnboardingScreen(
                         .padding(32.dp)
                 ) {
                     Text(
-                        text = if (pageState.currentPage == onBoardingPages.size - 1)
-                            "Go!"
-                        else
-                            "Next",
+                        text = if (pageState.currentPage == onBoardingPages.size - 1) "Go!"
+                        else "Next",
                         fontSize = 18.sp,
                         textAlign = TextAlign.Center,
                         modifier = Modifier
@@ -140,7 +137,9 @@ fun OnboardingScreen(
 @Preview(showSystemUi = true, showBackground = false)
 @Composable
 fun OnBoardingPage() {
-    OnboardingScreen { }
+    CinemeteorTheme {
+        OnboardingScreen { }
+    }
 }
 
 

@@ -5,15 +5,11 @@ import android.content.Intent
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
-import android.text.Layout
 import android.util.Log
 import android.widget.Toast
-import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
-import androidx.lifecycle.compose.LocalLifecycleOwner
-import androidx.lifecycle.lifecycleScope
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -53,15 +49,15 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.compose.LocalLifecycleOwner
+import androidx.lifecycle.lifecycleScope
 import coil.compose.AsyncImage
-import com.acms.cinemeteor.BuildConfig
 import com.acms.cinemeteor.models.Movie
 import com.acms.cinemeteor.models.Review
 import com.acms.cinemeteor.repository.MovieRepository
@@ -72,6 +68,8 @@ import com.acms.cinemeteor.utils.LanguageUtils
 import com.google.accompanist.swiperefresh.SwipeRefresh
 import com.google.accompanist.swiperefresh.SwipeRefreshIndicator
 import com.google.accompanist.swiperefresh.rememberSwipeRefreshState
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
@@ -110,8 +108,67 @@ class FilmActivity : AppCompatActivity() {
     }
 }
 
+object FirestoreHelper {
+    private val auth = FirebaseAuth.getInstance()
+    private val store = FirebaseFirestore.getInstance()
+    fun toggleFavrite(
+        movie: Movie,
+        onResult: (Boolean) -> Unit,
+        onError: (String) -> Unit
+    ) {
+        val docRef = store.collection("users")
+            .document(auth.currentUser!!.uid)
+            .collection("favorites")
+            .document(movie.id.toString())
+        docRef.get()
+            .addOnSuccessListener { document ->
+                if (document.exists()) {
+                    docRef.delete()
+                        .addOnSuccessListener { onResult(false) }
+                        .addOnFailureListener { e -> onError("Error removing favorite: ${e.message}") }
+                } else {
+                    docRef.set(movie)
+                        .addOnSuccessListener { onResult(true) }
+                        .addOnFailureListener { e -> onError("Error adding favorite: ${e.message}") }
+                }
+            }
+            .addOnFailureListener { e -> onError("Connection Error: ${e.message}") }
+    }
+
+    fun isMovieSaved(movieId: Int, onResult: (Boolean) -> Unit) {
+        val user = auth.currentUser ?: return
+
+        store.collection("users")
+            .document(user.uid)
+            .collection("favorites")
+            .document(movieId.toString())
+            .get()
+            .addOnSuccessListener { document ->
+                onResult(document.exists())
+            }
+            .addOnFailureListener {
+                onResult(false) // Default to false if error
+            }
+    }
+
+    fun getFavoriteMovies(onSuccess: (List<Movie>) -> Unit, onError: (String) -> Unit) {
+        store.collection("users")
+            .document(auth.currentUser!!.uid)
+            .collection("favorites")
+            .get()
+            .addOnSuccessListener { result ->
+                val movies = result.toObjects(Movie::class.java)
+                onSuccess(movies)
+            }
+            .addOnFailureListener { exception ->
+                onError(exception.message ?: "Error fetching favorites")
+            }
+    }
+}
+
 @Composable
 fun FilmDetailsScreen(movie: Movie) {
+    var isAccSaved by remember { mutableStateOf(false) }
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
     val repository = remember { MovieRepository() }
@@ -131,6 +188,12 @@ fun FilmDetailsScreen(movie: Movie) {
     var isLoadingReviews by remember { mutableStateOf(false) }
     var isRefreshing by remember { mutableStateOf(false) }
     var isInitialLoad by remember { mutableStateOf(true) }
+
+    LaunchedEffect(movie.id) {
+        FirestoreHelper.isMovieSaved(movie.id) { savedInDb ->
+            isAccSaved = savedInDb
+        }
+    }
 
     // Swipe refresh state
     val swipeRefreshState = rememberSwipeRefreshState(isRefreshing = isRefreshing)
@@ -200,10 +263,6 @@ fun FilmDetailsScreen(movie: Movie) {
         Log.d("FilmActivity", "Loading movie ${movie.id} with language: $languageCode")
         refreshMovieData(isManualRefresh = false)
     }
-
-
-
-
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -255,86 +314,105 @@ fun FilmDetailsScreen(movie: Movie) {
                     .verticalScroll(rememberScrollState())
                     .padding(16.dp)
             ) {
-                Row {
-                    AsyncImage(
-                        model = posterUrl ?: R.drawable.background_screen,
-                        contentDescription = currentMovie.title,
-                        modifier = Modifier
-                            .width(140.dp)
-                            .height(200.dp)
-                            .clip(RoundedCornerShape(16.dp)),
-                        contentScale = ContentScale.Crop,
-                        placeholder = painterResource(id = R.drawable.background_screen),
-                        error = painterResource(id = R.drawable.background_screen)
+
+                AsyncImage(
+                    model = posterUrl ?: R.drawable.background_screen,
+                    contentDescription = currentMovie.title,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(400.dp)
+                        .clip(RoundedCornerShape(16.dp))
+                        .align(Alignment.CenterHorizontally),
+                    contentScale = ContentScale.Crop,
+                    placeholder = painterResource(id = R.drawable.background_screen),
+                    error = painterResource(id = R.drawable.background_screen)
+                )
+
+                Spacer(modifier = Modifier.height(12.dp))
+
+
+                Text(
+                    text = currentMovie.title.ifEmpty { "No Title" },
+                    style = MaterialTheme.typography.headlineSmall.copy(
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onBackground
+                    ),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 4.dp)
+                )
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 4.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = "⭐ %.1f".format(currentMovie.voteAverage),
+                        color = MaterialTheme.colorScheme.primary,
+                        fontSize = 20.sp,
+                        fontWeight = FontWeight.Medium
                     )
-
-                    Spacer(
-                        modifier = Modifier
-                            .height(12.dp)
-                            .width(12.dp)
-                    )
-
-
-                    Column(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 4.dp),
-                        horizontalAlignment = Alignment.Start,
-                        verticalArrangement = Arrangement.spacedBy(14.dp)
-                    ) {
-
-                        Text(
-                            text = currentMovie.title.ifEmpty { "No Title" },
-                            style = MaterialTheme.typography.headlineSmall.copy(
-                                fontWeight = FontWeight.Bold,
-                                color = MaterialTheme.colorScheme.onBackground
-                            ),
-                            modifier = Modifier
-                                .padding(8.dp)
-                        )
-
-                        Spacer(modifier = Modifier.height(8.dp))
-
-                        Text(
-                            text = "⭐ ${currentMovie.voteAverage}",
-                            color = MaterialTheme.colorScheme.primary,
-                            fontSize = 20.sp,
-                            fontWeight = FontWeight.Medium
-                        )
-
-                        Row {
-                            IconButton(onClick = {
-                                LocalSavedMovies.toggleMovie(context, currentMovie)
-
-                                isSaved = LocalSavedMovies.isMovieSaved(context, currentMovie.id)
-                            }) {
-                                Icon(
-                                    painter = painterResource(
-                                        id = if (isSaved) R.drawable.ic_saved else R.drawable.ic_save
-                                    ),
-                                    contentDescription = "Save",
-                                    tint = MaterialTheme.colorScheme.primary
-                                )
-                            }
-
-                            IconButton(onClick = {
-                                val shareIntent = Intent(Intent.ACTION_SEND).apply {
-                                    type = "text/plain"
-                                    putExtra(
-                                        Intent.EXTRA_TEXT,
-                                        "Check out this movie: ${currentMovie.title}\n\n${currentMovie.overview}"
-                                    )
-                                }
-                                context.startActivity(
-                                    Intent.createChooser(shareIntent, "Share via")
+                    Row {
+                        IconButton(
+                            onClick = {
+                                FirestoreHelper.toggleFavrite(
+                                    movie = movie,
+                                    onResult = { newState ->
+                                        isAccSaved = newState
+                                        val message =
+                                            if (newState) R.string.added_to_cloud else R.string.removed_from_cloud
+                                        Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
+                                    },
+                                    onError = { errorMessage ->
+                                        Toast.makeText(context, errorMessage, Toast.LENGTH_SHORT)
+                                            .show()
+                                    }
                                 )
                             }) {
-                                Icon(
-                                    painter = painterResource(id = R.drawable.ic_share),
-                                    contentDescription = "Share",
-                                    tint = MaterialTheme.colorScheme.onBackground
+                            Icon(
+                                painter = painterResource(
+                                    id = if (isAccSaved) R.drawable.baseline_bookmark_24 else R.drawable.baseline_bookmark_border_24
+                                ),
+                                contentDescription = "SaveFirebase",
+                                tint = MaterialTheme.colorScheme.primary
+                            )
+                        }
+                        IconButton(onClick = {
+                            LocalSavedMovies.toggleMovie(context, currentMovie)
+                            isSaved = LocalSavedMovies.isMovieSaved(context, currentMovie.id)
+                        }) {
+                            Icon(
+                                painter = painterResource(
+                                    id = if (isSaved) R.drawable.ic_saved else R.drawable.ic_save
+                                ),
+                                contentDescription = "Save",
+                                tint = MaterialTheme.colorScheme.primary
+                            )
+                        }
+
+                        IconButton(onClick = {
+                            val shareIntent = Intent(Intent.ACTION_SEND).apply {
+                                type = "text/plain"
+                                putExtra(
+                                    Intent.EXTRA_TEXT,
+                                    "Check out this movie: ${currentMovie.title}\n\n${currentMovie.overview}"
                                 )
                             }
+                            context.startActivity(
+                                Intent.createChooser(shareIntent, "Share via")
+                            )
+                        }) {
+                            Icon(
+                                painter = painterResource(id = R.drawable.ic_share),
+                                contentDescription = "Share",
+                                tint = MaterialTheme.colorScheme.onBackground
+                            )
                         }
                     }
                 }
@@ -479,7 +557,7 @@ fun FilmDetailsScreen(movie: Movie) {
                         .height(50.dp)
                 ) {
                     Text(
-                        text = stringResource(R.string.play),
+                        "Play",
                         fontSize = 18.sp,
                         color = MaterialTheme.colorScheme.onPrimary
                     )
@@ -507,7 +585,7 @@ fun FilmDetailsScreen(movie: Movie) {
                         modifier = Modifier.align(Alignment.End)
                     ) {
                         Text(
-                            if (expanded) stringResource(R.string.readlees) else stringResource(R.string.readmore),
+                            if (expanded) "Read less" else "Read more",
                             color = MaterialTheme.colorScheme.primary,
                             fontSize = 14.sp
                         )
@@ -519,7 +597,7 @@ fun FilmDetailsScreen(movie: Movie) {
                 // Similar Movies Section
                 if (similarMovies.isNotEmpty() || isLoadingSimilarMovies) {
                     Text(
-                        text = stringResource(R.string.similar),
+                        text = "Similar Movies",
                         style = MaterialTheme.typography.titleLarge.copy(
                             fontWeight = FontWeight.Bold,
                             color = MaterialTheme.colorScheme.onBackground
@@ -537,7 +615,7 @@ fun FilmDetailsScreen(movie: Movie) {
                             contentAlignment = Alignment.Center
                         ) {
                             Text(
-                                "...",
+                                "Loading similar movies...",
                                 color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f)
                             )
                         }
@@ -576,7 +654,7 @@ fun FilmDetailsScreen(movie: Movie) {
                             contentAlignment = Alignment.Center
                         ) {
                             Text(
-                                "...",
+                                "Loading reviews...",
                                 color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f)
                             )
                         }
@@ -612,8 +690,8 @@ fun SimilarMovieItem(movie: Movie, context: Context) {
             model = posterUrl ?: R.drawable.background_screen,
             contentDescription = movie.title,
             modifier = Modifier
-                .width(150.dp)
-                .height(200.dp)
+                .width(120.dp)
+                .height(180.dp)
                 .clip(shape = RoundedCornerShape(12.dp)),
             contentScale = ContentScale.Crop,
             placeholder = painterResource(id = R.drawable.background_screen),
@@ -684,5 +762,27 @@ fun ReviewItem(review: Review) {
                 lineHeight = 20.sp
             )
         }
+    }
+}
+
+@Preview(showBackground = true, showSystemUi = true)
+@Composable
+private fun FilmActivityPreview() {
+    CinemeteorTheme {
+        FilmDetailsScreen(
+            Movie(
+                id = 1,
+                title = "Mockup Movie",
+                overview = "A thief who steals corporate secrets through the use of dream-sharing technology is given the inverse task of planting an idea into the mind of a C.E.O.",
+                posterPath = "", // You can put a URL here or leave it empty/null
+                backdropPath = "",
+                releaseDate = "2010-07-16",
+                voteAverage = 8.8,
+                voteCount = 14000,
+                popularity = 95.0,
+                originalLanguage = "en",
+                originalTitle = "Inception"
+            )
+        )
     }
 }

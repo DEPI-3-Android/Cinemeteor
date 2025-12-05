@@ -7,24 +7,24 @@ import kotlinx.parcelize.Parcelize
 
 @Parcelize
 data class Movie(
-    val id: Int,
-    val title: String,
-    val overview: String,
+    val id: Int = 0,
+    val title: String = "",
+    val overview: String = "",
     @SerializedName("poster_path")
-    val posterPath: String?,
+    val posterPath: String? = null,
     @SerializedName("backdrop_path")
-    val backdropPath: String?,
+    val backdropPath: String? = null,
     @SerializedName("release_date")
-    val releaseDate: String?,
+    val releaseDate: String? = null,
     @SerializedName("vote_average")
-    val voteAverage: Double,
+    val voteAverage: Double = 0.0,
     @SerializedName("vote_count")
-    val voteCount: Int,
-    val popularity: Double?,
+    val voteCount: Int = 0,
+    val popularity: Double? = null,
     @SerializedName("original_language")
-    val originalLanguage: String?,
+    val originalLanguage: String? = null,
     @SerializedName("original_title")
-    val originalTitle: String?
+    val originalTitle: String? = null
 ): Parcelable
 
 data class MovieResponse(

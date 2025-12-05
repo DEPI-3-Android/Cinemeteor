@@ -391,7 +391,6 @@ fun MoviesHomeScreen(
 fun MoviePosterItem(movie: Movie) {
     val posterUrl = ImageUtils.getPosterUrl(movie.posterPath)
     val context = LocalContext.current
-
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier = Modifier.clickable {
@@ -415,7 +414,6 @@ fun MoviePosterItem(movie: Movie) {
         Spacer(modifier = Modifier.height(8.dp))
         Text(
             text = movie.title,
-
             fontSize = 14.sp,
             maxLines = 2,
             overflow = TextOverflow.Ellipsis,

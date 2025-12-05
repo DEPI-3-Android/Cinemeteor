@@ -11,8 +11,8 @@ import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -23,14 +23,18 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Divider
+import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
@@ -40,6 +44,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -69,6 +74,7 @@ import androidx.credentials.CredentialManager
 import androidx.credentials.CustomCredential
 import androidx.credentials.GetCredentialRequest
 import androidx.credentials.exceptions.GetCredentialException
+import com.acms.cinemeteor.OnBoardingScreen.OnboardingScreen
 import com.acms.cinemeteor.ui.theme.CinemeteorTheme
 import com.google.android.libraries.identity.googleid.GetGoogleIdOption
 import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential
@@ -89,17 +95,28 @@ class LoginActivity : AppCompatActivity() {
             LocaleListCompat.forLanguageTags("ar")
         else
             LocaleListCompat.forLanguageTags("en")
-
         AppCompatDelegate.setApplicationLocales(localeList)
         val mode = prefs.getInt("mode", AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM)
         AppCompatDelegate.setDefaultNightMode(mode)
-
         super.onCreate(savedInstanceState)
+        val onBoardingPrefs = getSharedPreferences("app_prefs", Context.MODE_PRIVATE)
+        val onBoardingShown = onBoardingPrefs.getBoolean("onboarding_show", false)
         enableEdgeToEdge()
         setContent {
             CinemeteorTheme {
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    LoginDesign(modifier = Modifier.padding(innerPadding))
+                    var showOnboarding by rememberSaveable { mutableStateOf(!onBoardingShown) }
+                    if (showOnboarding) {
+                        OnboardingScreen(
+                            modifier = Modifier.padding(innerPadding),
+                            onFinish = {
+                                onBoardingPrefs.edit().putBoolean("onboarding_show", true).apply()
+                                showOnboarding = false
+                            }
+                        )
+                    } else {
+                        LoginDesign()
+                    }
                 }
             }
         }
@@ -154,40 +171,33 @@ private fun checkProfile(context: Context) {
         }
         .addOnFailureListener { e ->
             Log.e("Auth", "Error checking database", e)
-            Toast.makeText(context, "Connection Error", Toast.LENGTH_SHORT).show()
+            Toast.makeText(context, R.string.connection_error, Toast.LENGTH_SHORT).show()
         }
 
 }
 
 private fun onLoginClick(context: Context, emailField: String, passwordField: String) {
-    lateinit var auth: FirebaseAuth
-    auth = Firebase.auth
+    val auth = Firebase.auth
     auth.signInWithEmailAndPassword(emailField, passwordField)
         .addOnCompleteListener { task ->
             if (task.isSuccessful) {
                 val oldUser = auth.currentUser
-
-                if (oldUser != null && oldUser.isEmailVerified) {
-
-                    // ⭐ SAVE USER UID HERE
-                    val prefs = context.getSharedPreferences("settings", Context.MODE_PRIVATE)
-                    prefs.edit().putString("current_user_uid", oldUser.uid).apply()
-
-                    Log.d("LoginScreen", "Login Successful")
-
-                    // Redirect
-                    val I = Intent(context, MainActivity::class.java)
-                    I.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-                    context.startActivity(I)
-                } else if (oldUser != null && !oldUser.isEmailVerified) {
-                    Log.w("LoginScreen", "Verification Required")
-                    Toast.makeText(context, R.string.verification_required, Toast.LENGTH_LONG)
-                        .show()
-                }
+                if (oldUser != null && oldUser.isEmailVerified) checkProfile(context)
+                else if (oldUser != null && !oldUser.isEmailVerified) Toast.makeText(
+                    context,
+                    R.string.verification_required,
+                    Toast.LENGTH_LONG
+                ).show()
+            } else {
+                val exception = task.exception
+                Toast.makeText(
+                    context,
+                    exception?.localizedMessage ?: context.getString(R.string.login_failed),
+                    Toast.LENGTH_LONG
+                ).show()
             }
         }
 }
-
 
 suspend fun loginWithGoogle(credential: Credential): AuthResult? {
     if (credential is CustomCredential && credential.type == GoogleIdTokenCredential.TYPE_GOOGLE_ID_TOKEN_CREDENTIAL) {
@@ -207,12 +217,14 @@ suspend fun loginWithGoogle(credential: Credential): AuthResult? {
     }
 }
 
+@Suppress("DEPRECATION")
 @Composable
 fun LoginDesign(modifier: Modifier = Modifier) {
     val context = LocalContext.current
-    var emailField by remember { mutableStateOf("") }
-    var passwordField by remember { mutableStateOf("") }
-    var passwordVisibility by remember { mutableStateOf(false) }
+    val scroll = rememberScrollState()
+    var emailField by rememberSaveable { mutableStateOf("") }
+    var passwordField by rememberSaveable { mutableStateOf("") }
+    var passwordVisibility by rememberSaveable { mutableStateOf(false) }
     val coroutineScope = rememberCoroutineScope()
     val credentialManager = CredentialManager.create(context)
     val isEmailValid by remember(emailField) {
@@ -223,7 +235,7 @@ fun LoginDesign(modifier: Modifier = Modifier) {
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(color = Color.White)
+            .verticalScroll(scroll)
     )
     {
         Column(
@@ -236,12 +248,11 @@ fun LoginDesign(modifier: Modifier = Modifier) {
             Image(
                 painter = painterResource(R.drawable.cinemeteor_red),
                 contentDescription = "red_logo",
-                modifier = Modifier
-                    .size(200.dp)
+                modifier = Modifier.size(200.dp)
             )
             Text(
                 text = buildAnnotatedString {
-                    withStyle(style = SpanStyle(color = Color.Black)) {
+                    withStyle(style = SpanStyle(color = if (isSystemInDarkTheme()) Color.White else Color.Black)) {
                         append(" ${stringResource(R.string.welcome_back)}")
                     }
                     withStyle(style = SpanStyle(color = Color(0xFFE21220))) {
@@ -254,7 +265,7 @@ fun LoginDesign(modifier: Modifier = Modifier) {
                 modifier = Modifier.fillMaxWidth(),
                 textAlign = TextAlign.Center
             )
-            TextField(
+            OutlinedTextField(
                 value = emailField,
                 onValueChange = { emailField = it },
                 label = { Text("${stringResource(R.string.email)}") },
@@ -264,7 +275,7 @@ fun LoginDesign(modifier: Modifier = Modifier) {
                     .padding(top = 18.dp)
                     .width(500.dp)
             )
-            TextField(
+            OutlinedTextField(
                 value = passwordField,
                 onValueChange = { passwordField = it },
                 label = { Text("${stringResource(R.string.password)}") },
@@ -286,9 +297,10 @@ fun LoginDesign(modifier: Modifier = Modifier) {
                     val description =
                         if (passwordVisibility) "Hide password" else "Show password"
                     IconButton(onClick = { passwordVisibility = !passwordVisibility }) {
-                        Image(
-                            painter = painterResource(id = image),
-                            contentDescription = description
+                        Icon(
+                            painter = painterResource(image),
+                            contentDescription = description,
+                            tint = if (isSystemInDarkTheme()) Color.White else Color.Black
                         )
                     }
                 }
@@ -296,7 +308,7 @@ fun LoginDesign(modifier: Modifier = Modifier) {
             Spacer(modifier = Modifier.height(18.dp))
             Button(
                 onClick = { onLoginClick(context, emailField, passwordField) },
-                enabled = emailField.isNotBlank() && passwordField.isNotBlank(),
+                enabled = emailField.isNotEmpty() && passwordField.isNotEmpty(),
                 shape = RoundedCornerShape(40),
                 colors = ButtonDefaults.buttonColors(
                     containerColor = Color(0xFFE21220),
@@ -307,7 +319,7 @@ fun LoginDesign(modifier: Modifier = Modifier) {
                     .padding(horizontal = 12.dp, vertical = 20.dp),
             ) {
                 Text(
-                    "${stringResource(R.string.login)}",
+                    text = "${stringResource(R.string.login)}",
                     fontSize = 20.sp,
                     modifier = Modifier.padding(vertical = 8.dp)
                 )
@@ -349,7 +361,7 @@ fun LoginDesign(modifier: Modifier = Modifier) {
                 )
                 Text(
                     text = stringResource(R.string.or),
-                    color = Color(0xFF626262),
+                    color = if (isSystemInDarkTheme()) Color.White else Color.Black,
                     fontSize = 16.sp,
                     modifier = Modifier
                         .padding(vertical = 4.dp, horizontal = 12.dp)
@@ -417,8 +429,8 @@ fun LoginDesign(modifier: Modifier = Modifier) {
                     .padding(horizontal = 12.dp, vertical = 12.dp),
                 shape = RoundedCornerShape(40),
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = Color.White,
-                    contentColor = Color.Black
+                    containerColor = Color.Transparent,
+                    contentColor = if (isSystemInDarkTheme()) Color.White else Color.Black
                 )
             ) {
                 Image(
@@ -438,7 +450,7 @@ fun LoginDesign(modifier: Modifier = Modifier) {
             Text(
                 fontSize = 18.sp,
                 text = buildAnnotatedString {
-                    withStyle(style = SpanStyle(color = Color(0xFF626262))) {
+                    withStyle(style = SpanStyle(color = if (isSystemInDarkTheme()) Color.White else Color.Black)) {
                         append("${stringResource(R.string.new_user)} ")
                     }
                     withLink(
@@ -468,5 +480,7 @@ fun LoginDesign(modifier: Modifier = Modifier) {
 @Preview(showBackground = true, showSystemUi = true)
 @Composable
 private fun LoginPreview() {
-    LoginDesign()
+    CinemeteorTheme {
+        LoginDesign()
+    }
 }
