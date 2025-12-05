@@ -63,4 +63,9 @@
     <string name="verification_failed">Verification Email Failed</string>
     <string name="signup_failed">Sign up failed</string>
     <string name="fill_profile">Please, fill your profile</string>
+    <string name="empty">No saved movies yet</string>
+    <string name="play">Play</string>
+    <string name="readmore">Read more</string>
+    <string name="readlees">Read less</string>
+    <string name="similar">Similar Movies</string>
 </resources>

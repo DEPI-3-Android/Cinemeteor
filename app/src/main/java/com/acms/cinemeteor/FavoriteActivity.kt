@@ -311,7 +311,7 @@ fun SavedFilmsScreen(modifier: Modifier = Modifier) {
                     modifier = Modifier.fillMaxSize(),
                     contentAlignment = Alignment.Center
                 ) {
-                    Text("No saved movies yet")
+                    Text(text = stringResource(R.string.empty))
                 }
             } else {
                 LazyVerticalGrid(

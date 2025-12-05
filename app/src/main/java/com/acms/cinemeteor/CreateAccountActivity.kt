@@ -1,20 +1,26 @@
 package com.acms.cinemeteor
 
+import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
+import android.util.Log
 import android.widget.Toast
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -30,7 +36,10 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -39,7 +48,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -47,11 +58,15 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.os.LocaleListCompat
+import com.acms.cinemeteor.ui.components.LoadingScreen
 import com.acms.cinemeteor.ui.theme.CinemeteorTheme
 import com.google.firebase.Firebase
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.auth
+import com.google.firebase.auth.userProfileChangeRequest
 import com.google.firebase.firestore.firestore
+import kotlinx.coroutines.suspendCancellableCoroutine
+import kotlin.coroutines.resume
 
 class CreateAccountActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -78,141 +93,147 @@ class CreateAccountActivity : AppCompatActivity() {
     }
 }
 
-private fun checkEmailVerification(context: Context) {
-    val user = FirebaseAuth.getInstance().currentUser
-    user?.reload()?.addOnCompleteListener { task ->
-        if (task.isSuccessful) {
-            if (user.isEmailVerified) {
-                val I = Intent(context, MainActivity::class.java).apply {
-                    flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-                }
-                context.startActivity(I)
-                val authPrefs = context.getSharedPreferences("AuthPrefs", Context.MODE_PRIVATE)
-                with(authPrefs.edit()) {
-                    putBoolean("isLoggedIn", true)
-                    apply()
-                }
-            } else Toast.makeText(context, R.string.verification_required, Toast.LENGTH_LONG).show()
-        } else Toast.makeText(context, "Error checking verification", Toast.LENGTH_SHORT).show()
-    }
-}
-
-private fun saveUserProfile(name: String, gender: String) {
-    val userId = Firebase.auth.currentUser?.uid ?: return
-    val store = Firebase.firestore
-    // Data map
-    val userMap = hashMapOf(
-        "name" to name,
-        "gender" to gender,
-        "email" to Firebase.auth.currentUser?.email
-    )
-    // Collection = "users"
-    store.collection("users").document(userId).set(userMap)
-}
 @Composable
 fun CreateAccountDesign(modifier: Modifier = Modifier) {
+    val user = Firebase.auth.currentUser
     val context = LocalContext.current
+    val activity = context as? Activity
+
     var nameField by remember { mutableStateOf("") }
-    var expand by remember { mutableStateOf(false) }
-    var selectedGender by remember { mutableStateOf("Gender") }
-    val expandList = listOf("Male", "Female")
-    val rotationState by animateFloatAsState(
-        targetValue = if (expand) 180f else 0f,
-        label = "Selection Array Rotation"
-    )
-    Box(modifier = Modifier.fillMaxSize()) {
-        Column(
-            horizontalAlignment = Alignment.CenterHorizontally,
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(horizontal = 24.dp)
-                .padding(top = 64.dp),
+    var isLoadingUserData by remember { mutableStateOf(true) }
+
+    // Load user data when screen loads
+    LaunchedEffect(Unit) {
+        try {
+            if (user != null) {
+                // Reload user to get latest data
+                suspendCancellableCoroutine<Unit> { continuation ->
+                    user.reload().addOnCompleteListener { reloadTask ->
+                        val currentUser = Firebase.auth.currentUser
+                        nameField = currentUser?.displayName ?: ""
+                        isLoadingUserData = false
+                        continuation.resume(Unit)
+                    }
+                }
+            } else {
+                // If user is null, no reload needed
+                nameField = ""
+                isLoadingUserData = false
+            }
+        } catch (e: Exception) {
+            // Fallback to current user data
+            nameField = user?.displayName ?: ""
+            isLoadingUserData = false
+        }
+    }
+
+    Box(modifier = modifier.fillMaxSize()) {
+        // Loading screen overlay - shows first until all user data is loaded
+        LoadingScreen(
+            isLoading = isLoadingUserData,
+            message = null,
+            modifier = Modifier.fillMaxSize()
         )
-        {
-            Text(
-                text = "Fill your profile",
-                style = MaterialTheme.typography.headlineSmall,
-                fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.secondary,
-                modifier = Modifier.fillMaxWidth(),
-                textAlign = TextAlign.Center
-            )
-            OutlinedTextField(
-                value = nameField,
-                onValueChange = { nameField = it },
-                label = { Text("Enter your name") },
-                singleLine = true,
+
+        // Content shown only after loading is complete
+        if (!isLoadingUserData) {
+            Column(
+                verticalArrangement = Arrangement.Top,
+                horizontalAlignment = Alignment.Start,
                 modifier = Modifier
-                    .padding(top = 8.dp)
-                    .width(500.dp)
-            )
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = 10.dp)
+                    .padding(horizontal = 12.dp, vertical = 32.dp)
             ) {
-                OutlinedTextField(
-                    value = selectedGender,
-                    onValueChange = { },
-                    readOnly = true,
-                    label = { Text("Select Gender") },
-                    trailingIcon = {
-                        Icon(
-                            Icons.Default.ArrowDropDown,
-                            contentDescription = "Drop Down Arrow",
-                            modifier = Modifier.rotate(rotationState)
-                        )
-                    },
+                Row(
+                    horizontalArrangement = Arrangement.Start,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = stringResource(R.string.edit_profile),
+                        style = MaterialTheme.typography.headlineMedium,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.secondary,
+                        modifier = Modifier
+                            .padding(start = 8.dp, top = 8.dp)
+                            .weight(1f, true)
+                    )
+                }
+            }
+            Column(
+                verticalArrangement = Arrangement.Top,
+                horizontalAlignment = Alignment.Start,
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(horizontal = 12.dp)
+                    .padding(top = 32.dp)
+            ) {
+                Column(
+                    verticalArrangement = Arrangement.Top,
+                    horizontalAlignment = Alignment.CenterHorizontally,
                     modifier = Modifier
                         .fillMaxWidth()
-                        .clickable { expand = !expand },
-                    enabled = false,
-                    colors = OutlinedTextFieldDefaults.colors(
-                        disabledTextColor = MaterialTheme.colorScheme.onSurface,
-                        disabledBorderColor = MaterialTheme.colorScheme.outline,
-                        disabledLabelColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                        disabledTrailingIconColor = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                )
-                Box(
-                    modifier = Modifier
-                        .matchParentSize()
-                        .clickable { expand = !expand }
-                )
-                DropdownMenu(
-                    expanded = expand,
-                    onDismissRequest = { expand = false },
-                    modifier = Modifier.fillMaxWidth(0.87f)
+                        .padding(horizontal = 12.dp, vertical = 28.dp)
                 ) {
-                    expandList.forEach { label ->
-                        DropdownMenuItem(
-                            text = { Text(text = label) },
-                            onClick = {
-                                selectedGender = label
-                                expand = false
+                    Image(
+                        painter = painterResource(R.drawable.user),
+                        contentDescription = "Profile icon",
+                        colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.tertiary),
+                        modifier = Modifier
+                            .size(160.dp)
+                            .padding(top = 12.dp)
+
+                    )
+                    TextButton(
+                        onClick = {},
+                        modifier = Modifier
+                            .padding(vertical = 12.dp)
+                    ) {
+                        Text(
+                            text = stringResource(R.string.edit),
+                            style = MaterialTheme.typography.titleSmall,
+                        )
+                    }
+                    TextField(
+                        value = nameField,
+                        onValueChange = { nameField = it },
+                        label = { Text(stringResource(R.string.name)) },
+                        modifier = Modifier
+                            .padding(vertical = 20.dp)
+                            .fillMaxWidth()
+                    )
+                }
+                Row(
+                    modifier = Modifier.weight(1f, true),
+                    verticalAlignment = Alignment.Bottom
+                ) {
+                    Button(
+                        onClick = {
+                            val profileUpdates = userProfileChangeRequest {
+                                displayName = nameField
                             }
+                            user?.updateProfile(profileUpdates)
+                                ?.addOnCompleteListener { updateTask ->
+                                    if (updateTask.isSuccessful) {
+                                        Toast.makeText(context, "Saved!", Toast.LENGTH_SHORT).show()
+                                        Log.d("SignUpScreen", "User display name updated to $nameField")
+                                    } else {
+                                        Log.w(
+                                            "SignUpScreen",
+                                            "Failed to update display name: ${updateTask.exception?.message}"
+                                        )
+                                    }
+                                }
+                        },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(12.dp)
+                            .padding(bottom = 12.dp)
+                    ) {
+                        Text(
+                            text = stringResource(R.string.save),
+                            fontSize = 16.sp
                         )
                     }
                 }
-            }
-            Button(
-                enabled = nameField.isNotBlank(),
-                onClick = {
-                    saveUserProfile(nameField, selectedGender)
-                    checkEmailVerification(context)
-                },
-                shape = RoundedCornerShape(40),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = Color(0xFFE21220),
-                    contentColor = Color.White
-                ),
-                modifier = Modifier.padding(horizontal = 12.dp, vertical = 20.dp),
-            ) {
-                Text(
-                    "${stringResource(R.string.create_account)}",
-                    fontSize = 20.sp,
-                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 12.dp)
-                )
             }
         }
     }

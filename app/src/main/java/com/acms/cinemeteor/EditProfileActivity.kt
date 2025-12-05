@@ -167,7 +167,7 @@ fun EditProfileDesign(modifier: Modifier = Modifier) {
                 colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.tertiary),
                 modifier = Modifier
                     .size(160.dp)
-                    .padding(top = 12.dp)
+                    .padding(top = 44.dp)
 
             )
             TextButton(
