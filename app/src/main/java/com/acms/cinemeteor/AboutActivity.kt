@@ -117,8 +117,8 @@ fun AboutDesign(modifier: Modifier = Modifier) {
                         img = R.drawable.ammelogo,
                         name = "Ahmed Esmail",
                         role = R.string.android_dev_ui,
-                        linkedInLink = "",
-                        gitHubLink = ""
+                        linkedInLink = "https://www.linkedin.com/in/ahmedmmesmail/",
+                        gitHubLink = "https://github.com/ahmedmmesmail"
                     )
                 }
                 item {

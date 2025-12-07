@@ -4,19 +4,26 @@ import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import android.widget.Toast
+import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -31,6 +38,7 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -39,9 +47,12 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -49,10 +60,12 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.os.LocaleListCompat
+import coil.compose.rememberAsyncImagePainter
 import com.acms.cinemeteor.ui.theme.CinemeteorTheme
 import com.google.firebase.Firebase
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.auth
+import com.google.firebase.auth.userProfileChangeRequest
 import com.google.firebase.firestore.firestore
 
 class CreateAccountActivity : AppCompatActivity() {
@@ -110,107 +123,106 @@ private fun saveUserProfile(name: String, gender: String) {
 
 @Composable
 fun CreateAccountDesign(modifier: Modifier = Modifier) {
+
+    val user = FirebaseAuth.getInstance().currentUser
     val context = LocalContext.current
-    val scroll = rememberScrollState()
-    var nameField by rememberSaveable { mutableStateOf("") }
-    var expand by remember { mutableStateOf(false) }
-    var selectedGender by rememberSaveable { mutableStateOf("Gender") }
-    val expandList = listOf("Male", "Female")
-    val rotationState by animateFloatAsState(
-        targetValue = if (expand) 180f else 0f, label = "Selection Array Rotation"
-    )
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .verticalScroll(scroll)
-    ) {
-        Column(
-            horizontalAlignment = Alignment.CenterHorizontally,
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(horizontal = 24.dp)
-                .padding(top = 64.dp),
-        ) {
-            Text(
-                text = "Fill your profile",
-                style = MaterialTheme.typography.headlineSmall,
-                fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.secondary,
-                modifier = Modifier.fillMaxWidth(),
-                textAlign = TextAlign.Center
-            )
-            OutlinedTextField(
-                value = nameField,
-                onValueChange = { nameField = it },
-                label = { Text("Enter your name") },
-                singleLine = true,
-                modifier = Modifier
-                    .padding(top = 8.dp)
-                    .width(500.dp)
-            )
-            Box(
-                modifier = Modifier
-                    .width(500.dp)
-                    .padding(top = 10.dp)
-            ) {
-                OutlinedTextField(
-                    value = selectedGender,
-                    onValueChange = { },
-                    readOnly = true,
-                    label = { Text("Select Gender") },
-                    trailingIcon = {
-                        Icon(
-                            Icons.Default.ArrowDropDown,
-                            contentDescription = "Drop Down Arrow",
-                            modifier = Modifier.rotate(rotationState)
-                        )
-                    },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clickable { expand = !expand },
-                    enabled = false,
-                    colors = OutlinedTextFieldDefaults.colors(
-                        disabledTextColor = MaterialTheme.colorScheme.onSurface,
-                        disabledBorderColor = MaterialTheme.colorScheme.outline,
-                        disabledLabelColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                        disabledTrailingIconColor = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                )
-                Box(
-                    modifier = Modifier
-                        .matchParentSize()
-                        .clickable { expand = !expand })
-                DropdownMenu(
-                    expanded = expand,
-                    onDismissRequest = { expand = false },
-                    modifier = Modifier.fillMaxWidth(0.87f)
-                ) {
-                    expandList.forEach { label ->
-                        DropdownMenuItem(text = { Text(text = label) }, onClick = {
-                            selectedGender = label
-                            expand = false
-                        })
-                    }
-                }
-            }
-            Button(
-                enabled = nameField.isNotBlank(),
-                onClick = {
-                    saveUserProfile(nameField, selectedGender)
-                    checkEmailVerification(context)
+
+    var profileImageUrl by remember { mutableStateOf(user?.photoUrl?.toString()) }
+    var nameField by remember { mutableStateOf(user?.displayName ?: "") }
+    var isLoading by remember { mutableStateOf(false) }
+
+    val imagePicker = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.GetContent()
+    ) { uri ->
+        uri?.let {
+            isLoading = true
+            uploadToImgBBAndFirebase(
+                uri = it,
+                context = context,
+                onSuccess = { url ->
+                    profileImageUrl = url
+                    isLoading = false
                 },
-                shape = RoundedCornerShape(40),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = Color(0xFFE21220), contentColor = Color.White
-                ),
-                modifier = Modifier.padding(horizontal = 12.dp, vertical = 20.dp),
-            ) {
-                Text(
-                    "${stringResource(R.string.create_account)}",
-                    fontSize = 20.sp,
-                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 12.dp)
-                )
+                onError = { msg ->
+                    Toast.makeText(context, msg, Toast.LENGTH_SHORT).show()
+                    isLoading = false
+
+                }
+            )
+        }
+    }
+
+
+    Column(
+        modifier = modifier
+            .fillMaxSize()
+            .padding(18.dp)
+    ) {
+
+        LoadingDialog(show = isLoading)
+
+
+        Text(
+            text = stringResource(R.string.create_account),
+            fontSize = 24.sp
+        )
+
+        Spacer(Modifier.height(24.dp))
+
+        Column(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+
+            Image(
+                painter =
+                    if (profileImageUrl != null)
+                        rememberAsyncImagePainter(profileImageUrl)
+                    else
+                        painterResource(R.drawable.user),
+                contentDescription = "Profile Image",
+                modifier = Modifier
+                    .size(150.dp)
+                    .clip(CircleShape),
+                contentScale = ContentScale.Crop
+            )
+
+            TextButton(onClick = { imagePicker.launch("image/*") }) {
+                Text(stringResource(R.string.edit))
             }
+        }
+
+        Spacer(Modifier.height(30.dp))
+
+        OutlinedTextField(
+            value = nameField,
+            onValueChange = { nameField = it },
+            label = { Text(stringResource(R.string.name)) },
+            modifier = Modifier.fillMaxWidth()
+        )
+
+        Spacer(Modifier.weight(1f))
+
+        Button(
+            enabled = nameField.isNotBlank(),
+            onClick = {
+                val updates = userProfileChangeRequest {
+                    displayName = nameField
+                }
+
+                user?.updateProfile(updates)?.addOnCompleteListener {
+                    Toast.makeText(context,(R.string.saved), Toast.LENGTH_SHORT).show()
+                }
+
+                val I = Intent(context, MainActivity::class.java).apply {
+                    flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+                }
+            },
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(bottom = 12.dp)
+        ) {
+            Text(stringResource(R.string.save), fontSize = 16.sp)
         }
     }
 }

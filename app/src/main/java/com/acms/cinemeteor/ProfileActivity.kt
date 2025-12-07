@@ -25,6 +25,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -42,8 +43,10 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -53,9 +56,11 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.core.os.LocaleListCompat
+import coil.compose.rememberAsyncImagePainter
 import com.acms.cinemeteor.ui.components.LoadingScreen
 import com.acms.cinemeteor.ui.theme.CinemeteorTheme
 import com.google.firebase.Firebase
+import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.auth
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -109,12 +114,15 @@ fun ProfileDesign(modifier: Modifier = Modifier) {
     var showModeDialog by remember { mutableStateOf(false) }
     var showLangDialog by remember { mutableStateOf(false) }
 
+    val user = FirebaseAuth.getInstance().currentUser
+
+    var profileImageUrl by remember { mutableStateOf(user?.photoUrl?.toString()) }
+
     var isLoadingUserData by remember { mutableStateOf(true) }
     var email by remember { mutableStateOf("No email") }
     var name by remember { mutableStateOf("User Name") }
     var photoUrl by remember { mutableStateOf<android.net.Uri?>(null) }
 
-    val user = Firebase.auth.currentUser
 
     // Load user data when screen loads
     LaunchedEffect(Unit) {
@@ -207,12 +215,16 @@ fun ProfileDesign(modifier: Modifier = Modifier) {
                         .padding(horizontal = 12.dp, vertical = 28.dp)
                 ) {
                     Image(
-                        painter = painterResource(R.drawable.user),
-                        contentDescription = "Profile icon",
-                        colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.tertiary),
+                        painter =
+                            if (profileImageUrl != null)
+                                rememberAsyncImagePainter(profileImageUrl)
+                            else
+                                painterResource(R.drawable.user),
+                        contentDescription = "Profile Image",
                         modifier = Modifier
-                            .size(120.dp)
-                            .padding(top = 12.dp)
+                            .size(150.dp)
+                            .clip(CircleShape),
+                        contentScale = ContentScale.Crop
                     )
                     Text(
                         text = name,
@@ -557,3 +569,5 @@ fun ProfilePreview() {
         ProfileDesign()
     }
 }
+
+

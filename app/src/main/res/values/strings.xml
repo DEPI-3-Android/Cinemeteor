@@ -73,4 +73,10 @@
     <string name="nav_home">Home</string>
     <string name="nav_favourites">Favourites</string>
     <string name="nav_profile">Profile</string>
+    <string name="saved">Saved</string>
+    <string name="play">Play</string>
+    <string name="read_less">Read less</string>
+    <string name="read_more">Read more</string>
+    <string name="similar_movies">Similar Movies</string>
+    <string name="reviews">Reviews</string>
 </resources>

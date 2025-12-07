@@ -101,6 +101,15 @@ class LoginActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         val onBoardingPrefs = getSharedPreferences("app_prefs", Context.MODE_PRIVATE)
         val onBoardingShown = onBoardingPrefs.getBoolean("onboarding_show", false)
+
+        val authPrefs = getSharedPreferences("AuthPrefs", Context.MODE_PRIVATE)
+        val isLoggedIn = authPrefs.getBoolean("isLoggedIn", false)
+
+        if (isLoggedIn) {
+            startActivity(Intent(this, MainActivity::class.java))
+            finish()
+            return
+        }
         enableEdgeToEdge()
         setContent {
             CinemeteorTheme {
@@ -151,8 +160,7 @@ private fun checkProfile(context: Context) {
     store.collection("users").document(userId).get()
         .addOnSuccessListener { document ->
             val name = document.getString("name")
-            val gender = document.getString("gender")
-            if (document.exists() && !name.isNullOrEmpty() && !gender.isNullOrEmpty()) {
+            if (document.exists() && !name.isNullOrEmpty()) {
                 // Profile is complete
                 val I = Intent(context, MainActivity::class.java).apply {
                     flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
@@ -165,7 +173,7 @@ private fun checkProfile(context: Context) {
                 }
             } else {
                 // Profile is not completed
-                val intent = Intent(context, CreateAccountActivity::class.java)
+                val intent = Intent(context, MainActivity::class.java)
                 context.startActivity(intent)
             }
         }

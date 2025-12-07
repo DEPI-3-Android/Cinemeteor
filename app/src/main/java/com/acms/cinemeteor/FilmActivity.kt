@@ -49,6 +49,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -320,7 +321,8 @@ fun FilmDetailsScreen(movie: Movie) {
                     contentDescription = currentMovie.title,
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(400.dp)
+                        .padding(horizontal = 20.dp)
+                        .height(420.dp)
                         .clip(RoundedCornerShape(16.dp))
                         .align(Alignment.CenterHorizontally),
                     contentScale = ContentScale.Crop,
@@ -557,7 +559,7 @@ fun FilmDetailsScreen(movie: Movie) {
                         .height(50.dp)
                 ) {
                     Text(
-                        "Play",
+                        stringResource(R.string.play),
                         fontSize = 18.sp,
                         color = MaterialTheme.colorScheme.onPrimary
                     )
@@ -585,7 +587,7 @@ fun FilmDetailsScreen(movie: Movie) {
                         modifier = Modifier.align(Alignment.End)
                     ) {
                         Text(
-                            if (expanded) "Read less" else "Read more",
+                            if (expanded) stringResource(R.string.read_less) else stringResource(R.string.read_more),
                             color = MaterialTheme.colorScheme.primary,
                             fontSize = 14.sp
                         )
@@ -597,7 +599,7 @@ fun FilmDetailsScreen(movie: Movie) {
                 // Similar Movies Section
                 if (similarMovies.isNotEmpty() || isLoadingSimilarMovies) {
                     Text(
-                        text = "Similar Movies",
+                        text = stringResource(R.string.similar_movies),
                         style = MaterialTheme.typography.titleLarge.copy(
                             fontWeight = FontWeight.Bold,
                             color = MaterialTheme.colorScheme.onBackground
@@ -636,7 +638,7 @@ fun FilmDetailsScreen(movie: Movie) {
                 // Reviews Section
                 if (reviews.isNotEmpty() || isLoadingReviews) {
                     Text(
-                        text = "Reviews",
+                        text = stringResource(R.string.reviews),
                         style = MaterialTheme.typography.titleLarge.copy(
                             fontWeight = FontWeight.Bold,
                             color = MaterialTheme.colorScheme.onBackground

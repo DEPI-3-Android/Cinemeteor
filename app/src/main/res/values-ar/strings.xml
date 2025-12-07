@@ -71,4 +71,9 @@
     <string name="nav_home">الرئيسية</string>
     <string name="nav_favourites">المفضلة</string>
     <string name="nav_profile">الملف الشخصي</string>
+    <string name="saved">تم الحفظ</string>
+    <string name="play">تشغيل</string>
+    <string name="read_less">عرض أقل</string>
+    <string name="read_more">عرض المزيد</string>
+    <string name="similar_movies">أفلام مشابهة</string>
 </resources>

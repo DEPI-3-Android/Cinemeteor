@@ -40,6 +40,16 @@ android {
             buildConfigField("String", "TMDB_API_KEY", "\"\"")
             println("WARNING: TMDB_API_KEY not found in local.properties!")
         }
+
+        // Load IMGBB API key from local.properties
+        val IMGBBApiKey = localProperties.getProperty("IMGBB_API_KEY", "").trim()
+        if (IMGBBApiKey.isNotEmpty()) {
+            buildConfigField("String", "IMGBB_API_KEY", "\"$IMGBBApiKey\"")
+            println("IMGBB_API_KEY loaded successfully (length: ${IMGBBApiKey.length})")
+        } else {
+            buildConfigField("String", "IMGBB_API_KEY", "\"\"")
+            println("WARNING: IMGBB_API_KEY not found in local.properties!")
+        }
     }
     
     buildFeatures {
