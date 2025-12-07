@@ -102,10 +102,9 @@ class LoginActivity : AppCompatActivity() {
         val onBoardingPrefs = getSharedPreferences("app_prefs", Context.MODE_PRIVATE)
         val onBoardingShown = onBoardingPrefs.getBoolean("onboarding_show", false)
 
-        val authPrefs = getSharedPreferences("AuthPrefs", Context.MODE_PRIVATE)
-        val isLoggedIn = authPrefs.getBoolean("isLoggedIn", false)
+        val user = Firebase.auth.currentUser
 
-        if (isLoggedIn) {
+        if (user != null) {
             startActivity(Intent(this, MainActivity::class.java))
             finish()
             return

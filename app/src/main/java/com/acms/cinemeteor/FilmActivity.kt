@@ -316,105 +316,117 @@ fun FilmDetailsScreen(movie: Movie) {
                     .padding(16.dp)
             ) {
 
-                AsyncImage(
-                    model = posterUrl ?: R.drawable.background_screen,
-                    contentDescription = currentMovie.title,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 20.dp)
-                        .height(420.dp)
-                        .clip(RoundedCornerShape(16.dp))
-                        .align(Alignment.CenterHorizontally),
-                    contentScale = ContentScale.Crop,
-                    placeholder = painterResource(id = R.drawable.background_screen),
-                    error = painterResource(id = R.drawable.background_screen)
-                )
-
-                Spacer(modifier = Modifier.height(12.dp))
-
-
-                Text(
-                    text = currentMovie.title.ifEmpty { "No Title" },
-                    style = MaterialTheme.typography.headlineSmall.copy(
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onBackground
-                    ),
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 4.dp)
-                )
-
-                Spacer(modifier = Modifier.height(8.dp))
-
-
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 4.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(
-                        text = "⭐ %.1f".format(currentMovie.voteAverage),
-                        color = MaterialTheme.colorScheme.primary,
-                        fontSize = 20.sp,
-                        fontWeight = FontWeight.Medium
+                Row {
+                    AsyncImage(
+                        model = posterUrl ?: R.drawable.background_screen,
+                        contentDescription = currentMovie.title,
+                        modifier = Modifier
+                            .height(220.dp)
+                            .width(140.dp)
+                            .clip(RoundedCornerShape(16.dp))
+                            .align(Alignment.CenterVertically),
+                        contentScale = ContentScale.Crop,
+                        placeholder = painterResource(id = R.drawable.background_screen),
+                        error = painterResource(id = R.drawable.background_screen)
                     )
-                    Row {
-                        IconButton(
-                            onClick = {
-                                FirestoreHelper.toggleFavrite(
-                                    movie = movie,
-                                    onResult = { newState ->
-                                        isAccSaved = newState
-                                        val message =
-                                            if (newState) R.string.added_to_cloud else R.string.removed_from_cloud
-                                        Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
-                                    },
-                                    onError = { errorMessage ->
-                                        Toast.makeText(context, errorMessage, Toast.LENGTH_SHORT)
-                                            .show()
-                                    }
-                                )
-                            }) {
-                            Icon(
-                                painter = painterResource(
-                                    id = if (isAccSaved) R.drawable.baseline_bookmark_24 else R.drawable.baseline_bookmark_border_24
-                                ),
-                                contentDescription = "SaveFirebase",
-                                tint = MaterialTheme.colorScheme.primary
-                            )
-                        }
-                        IconButton(onClick = {
-                            LocalSavedMovies.toggleMovie(context, currentMovie)
-                            isSaved = LocalSavedMovies.isMovieSaved(context, currentMovie.id)
-                        }) {
-                            Icon(
-                                painter = painterResource(
-                                    id = if (isSaved) R.drawable.ic_saved else R.drawable.ic_save
-                                ),
-                                contentDescription = "Save",
-                                tint = MaterialTheme.colorScheme.primary
-                            )
-                        }
 
-                        IconButton(onClick = {
-                            val shareIntent = Intent(Intent.ACTION_SEND).apply {
-                                type = "text/plain"
-                                putExtra(
-                                    Intent.EXTRA_TEXT,
-                                    "Check out this movie: ${currentMovie.title}\n\n${currentMovie.overview}"
+                    Spacer(modifier = Modifier.height(12.dp))
+                    Column(
+                        verticalArrangement = Arrangement.spacedBy(20.dp),
+                        modifier = Modifier
+                            .padding(8.dp)
+
+                    ) {
+                        Text(
+                            text = currentMovie.title.ifEmpty { "No Title" },
+                            style = MaterialTheme.typography.headlineSmall.copy(
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.onBackground
+                            ),
+                            modifier = Modifier
+                                .padding(8.dp)
+                        )
+
+                        Spacer(Modifier.height(12.dp))
+
+                        Text(
+                            text = "⭐ %.1f".format(currentMovie.voteAverage),
+                            color = MaterialTheme.colorScheme.primary,
+                            fontSize = 20.sp,
+                            fontWeight = FontWeight.Medium
+                        )
+
+                        Spacer(Modifier.weight(1f))
+
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(8.dp),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+
+                            IconButton(
+                                onClick = {
+                                    FirestoreHelper.toggleFavrite(
+                                        movie = movie,
+                                        onResult = { newState ->
+                                            isAccSaved = newState
+                                            val message =
+                                                if (newState) R.string.added_to_cloud else R.string.removed_from_cloud
+                                            Toast.makeText(context, message, Toast.LENGTH_SHORT)
+                                                .show()
+                                        },
+                                        onError = { errorMessage ->
+                                            Toast.makeText(
+                                                context,
+                                                errorMessage,
+                                                Toast.LENGTH_SHORT
+                                            )
+                                                .show()
+                                        }
+                                    )
+                                }) {
+                                Icon(
+                                    painter = painterResource(
+                                        id = if (isAccSaved) R.drawable.baseline_bookmark_24 else R.drawable.baseline_bookmark_border_24
+                                    ),
+                                    contentDescription = "SaveFirebase",
+                                    tint = MaterialTheme.colorScheme.primary
                                 )
                             }
-                            context.startActivity(
-                                Intent.createChooser(shareIntent, "Share via")
-                            )
-                        }) {
-                            Icon(
-                                painter = painterResource(id = R.drawable.ic_share),
-                                contentDescription = "Share",
-                                tint = MaterialTheme.colorScheme.onBackground
-                            )
+                            IconButton(onClick = {
+                                LocalSavedMovies.toggleMovie(context, currentMovie)
+                                isSaved =
+                                    LocalSavedMovies.isMovieSaved(context, currentMovie.id)
+                            }) {
+                                Icon(
+                                    painter = painterResource(
+                                        id = if (isSaved) R.drawable.ic_saved else R.drawable.ic_save
+                                    ),
+                                    contentDescription = "Save",
+                                    tint = MaterialTheme.colorScheme.primary
+                                )
+                            }
+
+                            IconButton(onClick = {
+                                val shareIntent = Intent(Intent.ACTION_SEND).apply {
+                                    type = "text/plain"
+                                    putExtra(
+                                        Intent.EXTRA_TEXT,
+                                        "Check out this movie: ${currentMovie.title}\n\n${currentMovie.overview}"
+                                    )
+                                }
+                                context.startActivity(
+                                    Intent.createChooser(shareIntent, "Share via")
+                                )
+                            }) {
+                                Icon(
+                                    painter = painterResource(id = R.drawable.ic_share),
+                                    contentDescription = "Share",
+                                    tint = MaterialTheme.colorScheme.onBackground
+                                )
+                            }
                         }
                     }
                 }
