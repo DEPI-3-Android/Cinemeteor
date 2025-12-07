@@ -126,17 +126,17 @@ fun AboutDesign(modifier: Modifier = Modifier) {
                         img = R.drawable.person,
                         name = "Marwan Amr",
                         role = R.string.android_dev,
-                        linkedInLink = "",
-                        gitHubLink = ""
+                        linkedInLink = "linkedin.com/in/marwan-amr-b240b9314",
+                        gitHubLink = "https://github.com/marwanesawy5"
                     )
                 }
                 item {
                     DeveloperCard(
-                        img = R.drawable.person,
+                        img = R.drawable.ahmedmo,
                         name = "Ahmed Mostafa",
                         role = R.string.android_dev_api,
-                        linkedInLink = "",
-                        gitHubLink = ""
+                        linkedInLink = "https://www.linkedin.com/in/ahmedmostafa-swe",
+                        gitHubLink = "https://github.com/ahmedmo-27"
 
                     )
                 }
@@ -146,27 +146,27 @@ fun AboutDesign(modifier: Modifier = Modifier) {
                         name = "Ahmed Reda",
                         role = R.string.android_dev,
                         linkedInLink = "",
-                        gitHubLink = ""
+                        gitHubLink = "https://github.com/ahmedReda-andriod"
 
                     )
                 }
                 item {
                     DeveloperCard(
                         img = R.drawable.person,
-                        name = "Sara",
+                        name = "Sara Amged",
                         role = R.string.android_dev,
                         linkedInLink = "",
-                        gitHubLink = ""
+                        gitHubLink = "https://github.com/saraamged076"
 
                     )
                 }
                 item {
                     DeveloperCard(
                         img = R.drawable.person,
-                        name = "Christine",
+                        name = "Christin Medhat",
                         role = R.string.android_dev,
                         linkedInLink = "",
-                        gitHubLink = ""
+                        gitHubLink = "https://github.com/christinmedhat"
 
                     )
                 }
@@ -233,7 +233,7 @@ fun DeveloperCard(
                     painter = painterResource(R.drawable.linkedin),
                     contentDescription = "$name LinkedIn",
                     modifier = Modifier
-                        .clickable(onClick = { openUrl(context, gitHubLink) })
+                        .clickable(onClick = { openUrl(context, linkedInLink) })
                         .size(32.dp)
                         .padding(4.dp),
                     colorFilter = ColorFilter.tint(color = MaterialTheme.colorScheme.tertiary)

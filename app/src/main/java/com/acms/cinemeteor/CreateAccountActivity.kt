@@ -1,9 +1,11 @@
 package com.acms.cinemeteor
 
+import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import android.widget.Toast
+import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -130,6 +132,21 @@ fun CreateAccountDesign(modifier: Modifier = Modifier) {
     var profileImageUrl by remember { mutableStateOf(user?.photoUrl?.toString()) }
     var nameField by remember { mutableStateOf(user?.displayName ?: "") }
     var isLoading by remember { mutableStateOf(false) }
+
+    var backHandlingEnabled by remember { mutableStateOf(true) }
+
+    BackHandler(enabled = backHandlingEnabled) {
+        val auth = Firebase.auth
+        val authPrefs = context.getSharedPreferences("AuthPrefs", Context.MODE_PRIVATE)
+        with(authPrefs.edit()) {
+            putBoolean("isLoggedIn", false)
+            apply()
+        }
+        auth.signOut()
+        val intent = Intent(context, LoginActivity::class.java)
+        (context as? Activity)?.finishAffinity()
+        context.startActivity(intent)
+    }
 
     val imagePicker = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent()
