@@ -1,5 +1,6 @@
 package com.example.compose.snippets.components
 
+import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.FavoriteBorder
@@ -17,6 +18,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
@@ -25,18 +27,19 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.acms.cinemeteor.MoviesHomeScreen
 import com.acms.cinemeteor.ProfileDesign
-import com.acms.cinemeteor.SavedFilmsScreen
+import com.acms.cinemeteor.FavoriteActivityDesign
+import com.acms.cinemeteor.R
 import com.acms.cinemeteor.ui.theme.CinemeteorTheme
 
 enum class Destination(
     val route: String,
-    val label: String,
+    @StringRes val label: Int,
     val icon: ImageVector,
-    val contentDescription: String
+    @StringRes val contentDescription: Int
 ) {
-    HOME("home", "Home", Icons.Rounded.Home, "Home"),
-    FAVOURITE("favourite", "Favourite", Icons.Rounded.FavoriteBorder, "Favourite"),
-    Profile("profile", "Profile", Icons.Rounded.Person, "profile");
+    HOME("home", R.string.nav_home, Icons.Rounded.Home, R.string.nav_home),
+    FAVOURITE("favourite", R.string.nav_favourites, Icons.Rounded.FavoriteBorder, R.string.nav_favourites),
+    Profile("profile", R.string.nav_profile, Icons.Rounded.Person, R.string.nav_profile);
 
     companion object {
         fun fromRoute(route: String) = entries.firstOrNull { it.route == route } ?: HOME
@@ -58,7 +61,7 @@ fun AppNavHost(
             composable(destination.route) {
                 when (destination) {
                     Destination.HOME -> MoviesHomeScreen()
-                    Destination.FAVOURITE -> SavedFilmsScreen()
+                    Destination.FAVOURITE -> FavoriteActivityDesign()
                     Destination.Profile -> ProfileDesign()
                 }
             }
@@ -106,10 +109,10 @@ fun NavigationBarBottom(modifier: Modifier = Modifier) {
                             icon = {
                                 Icon(
                                     destination.icon,
-                                    contentDescription = destination.contentDescription
+                                    contentDescription = stringResource(destination.contentDescription)
                                 )
                             },
-                            label = { Text(destination.label) }
+                            label = { Text(stringResource(destination.label)) }
                         )
                     }
                 }

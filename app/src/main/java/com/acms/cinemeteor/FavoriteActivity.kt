@@ -3,8 +3,10 @@ package com.acms.cinemeteor
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
-import androidx.activity.ComponentActivity
+import android.util.Log
+import android.widget.Toast
 import androidx.activity.compose.setContent
+import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -15,10 +17,13 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -26,6 +31,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -43,38 +49,48 @@ import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.withStyle
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import com.acms.cinemeteor.models.Movie
+import com.acms.cinemeteor.repository.MovieRepository
+import com.acms.cinemeteor.ui.components.LoadingScreen
 import com.acms.cinemeteor.ui.theme.CinemeteorTheme
 import com.acms.cinemeteor.utils.ImageUtils
+import com.acms.cinemeteor.utils.LanguageUtils
+import com.google.accompanist.swiperefresh.SwipeRefresh
+import com.google.accompanist.swiperefresh.rememberSwipeRefreshState
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.launch
 
-class FavouriteActivity : ComponentActivity() {
+class FavouriteActivity : AppCompatActivity() {
     @OptIn(ExperimentalMaterial3Api::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
             CinemeteorTheme {
-                Scaffold(
-                    topBar = {
-
-                        TopAppBar(
-                            title = {
-                                Text(
-                                    text = "Favorite Films",
-                                    color = MaterialTheme.colorScheme.onPrimary
-                                )
-                            },
-                            colors = TopAppBarDefaults.largeTopAppBarColors(
-                                containerColor = MaterialTheme.colorScheme.primary
+                Scaffold(topBar = {
+                    TopAppBar(
+                        title = {
+                            Text(
+                                text = "Favorite Films",
+                                color = MaterialTheme.colorScheme.onPrimary
                             )
+                        },
+                        colors = TopAppBarDefaults.largeTopAppBarColors(
+                            containerColor = MaterialTheme.colorScheme.primary
                         )
-                    }
+                    )
+                }
                 ) { paddingValues ->
-                    SavedFilmsScreen(
+                    FavoriteActivityDesign(
                         modifier = Modifier
                             .fillMaxSize()
                             .padding(paddingValues)
@@ -85,15 +101,10 @@ class FavouriteActivity : ComponentActivity() {
     }
 }
 
-
 object LocalSavedMovies {
-
     private const val PREFS_NAME = "cinemeteor_prefs"
     private const val KEY_SAVED_MOVIES = "saved_movies"
-
     private val gson = Gson()
-
-
     fun getSavedMovies(context: Context): List<Movie> {
         val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
         val json = prefs.getString(KEY_SAVED_MOVIES, null) ?: return emptyList()
@@ -101,12 +112,10 @@ object LocalSavedMovies {
         return gson.fromJson(json, type)
     }
 
-
     private fun saveMoviesList(context: Context, movies: List<Movie>) {
         val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
         prefs.edit().putString(KEY_SAVED_MOVIES, gson.toJson(movies)).apply()
     }
-
 
     fun toggleMovie(context: Context, movie: Movie) {
         val current = getSavedMovies(context).toMutableList()
@@ -117,7 +126,6 @@ object LocalSavedMovies {
         }
         saveMoviesList(context, current)
     }
-
 
     fun isMovieSaved(context: Context, movieId: Int): Boolean {
         return getSavedMovies(context).any { it.id == movieId }
@@ -135,38 +143,189 @@ object LocalSavedMovies {
         val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
         prefs.edit().remove(KEY_SAVED_MOVIES).apply()
     }
-}
 
-@Composable
-fun SavedFilmsScreen(modifier: Modifier = Modifier) {
-    val context = LocalContext.current
-
-    var savedMovies by remember { mutableStateOf(LocalSavedMovies.getSavedMovies(context)) }
-
-    if (savedMovies.isEmpty()) {
-        Box(
-            modifier = Modifier.fillMaxSize(),
-            contentAlignment = Alignment.Center
-        ) {
-            Text("No saved movies yet")
-        }
-    } else {
-        LazyVerticalGrid(
-            columns = GridCells.Fixed(2),
-            modifier = modifier.padding(10.dp),
-            horizontalArrangement = Arrangement.spacedBy(10.dp),
-            verticalArrangement = Arrangement.spacedBy(10.dp)
-        ) {
-            items(savedMovies) { movie ->
-                MovieFavItem(
-                    movie = movie,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clickable {
-                            LocalSavedMovies.toggleMovie(context, movie)
-                            savedMovies = LocalSavedMovies.getSavedMovies(context)
-                        }
+    /**
+     * Refreshes all saved movies with the current language from SharedPreferences
+     * Fetches updated movie details for each saved movie and updates them concurrently
+     */
+    suspend fun refreshMoviesWithLanguage(
+        context: Context,
+        apiKey: String,
+        language: String
+    ): Result<Unit> {
+        return try {
+            val savedMovies = getSavedMovies(context)
+            if (savedMovies.isEmpty()) {
+                Log.d("LocalSavedMovies", "No saved movies to refresh")
+                return Result.success(Unit)
+            }
+            Log.d(
+                "LocalSavedMovies",
+                "Refreshing ${savedMovies.size} saved movies with language: $language"
+            )
+            val repository = MovieRepository()
+            // Fetch updated details for each movie concurrently using async
+            val updatedMovies = coroutineScope {
+                savedMovies.map { movie ->
+                    async {
+                        // Use getMovieDetailsWithFallback to ensure title/overview are filled
+                        val result =
+                            repository.getMovieDetailsWithFallback(apiKey, movie.id, language)
+                        result.fold(
+                            onSuccess = { updatedMovie: Movie ->
+                                Log.d(
+                                    "LocalSavedMovies",
+                                    "Updated movie ${movie.id}: ${updatedMovie.title}"
+                                )
+                                updatedMovie
+                            },
+                            onFailure = { exception: Throwable ->
+                                Log.e(
+                                    "LocalSavedMovies",
+                                    "Failed to update movie ${movie.id}: ${exception.message}"
+                                )
+                                // Keep original movie if update fails
+                                movie
+                            }
+                        )
+                    }
+                }.awaitAll()
+            }
+            // Save updated movies
+            if (updatedMovies.isNotEmpty()) {
+                saveMoviesList(context, updatedMovies)
+                Log.d(
+                    "LocalSavedMovies",
+                    "Successfully refreshed ${updatedMovies.size} movies with language: $language"
                 )
+            }
+            // Small delay to ensure data is persisted
+            kotlinx.coroutines.delay(100)
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Log.e("LocalSavedMovies", "Exception refreshing movies", e)
+            Result.failure(e)
+        }
+    }
+
+    /**
+     * Refreshes all saved movies using the current language from SharedPreferences
+     */
+    suspend fun refreshMoviesWithCurrentLanguage(
+        context: Context,
+        apiKey: String
+    ): Result<Unit> {
+        val language = LanguageUtils.getLanguageCode(context)
+        return refreshMoviesWithLanguage(context, apiKey, language)
+    }
+}
+@Composable
+fun FavoriteActivityDesign(modifier: Modifier = Modifier) {
+    val context = LocalContext.current
+    val apiKey = BuildConfig.TMDB_API_KEY.trim()
+    var savedMovies by remember { mutableStateOf(LocalSavedMovies.getSavedMovies(context)) }
+    var isRefreshing by remember { mutableStateOf(false) }
+    // Function to refresh movies
+    suspend fun refreshMovies() {
+        if (apiKey.isNotEmpty() && apiKey != "\"\"") {
+            isRefreshing = true
+            try {
+                val refreshResult =
+                    LocalSavedMovies.refreshMoviesWithCurrentLanguage(context, apiKey)
+                refreshResult.onSuccess {
+                    // Small delay to ensure data is persisted before reading
+                    kotlinx.coroutines.delay(150)
+                    savedMovies = LocalSavedMovies.getSavedMovies(context)
+                    isRefreshing = false
+                    Log.d(
+                        "SavedFilmsScreen",
+                        "Movies refreshed successfully with language: ${
+                            LanguageUtils.getLanguageCode(context)
+                        }"
+                    )
+                }.onFailure { exception ->
+                    Log.e("SavedFilmsScreen", "Failed to refresh movies: ${exception.message}")
+                    // Keep current movies if refresh fails, but still update the list
+                    savedMovies = LocalSavedMovies.getSavedMovies(context)
+                    isRefreshing = false
+                }
+            } catch (e: Exception) {
+                Log.e("SavedFilmsScreen", "Exception refreshing movies", e)
+                savedMovies = LocalSavedMovies.getSavedMovies(context)
+                isRefreshing = false
+            }
+        }
+    }
+
+    // Track initial load to show full screen loading only on first load
+    var isInitialLoad by remember { mutableStateOf(true) }
+
+    // Track manual refresh state (when user swipes to refresh)
+    var isManualRefresh by remember { mutableStateOf(false) }
+
+    // Refresh movies with current language when screen loads
+    LaunchedEffect(Unit) {
+        refreshMovies()
+        // Mark initial load as complete after first refresh
+        kotlinx.coroutines.delay(100)
+        isInitialLoad = false
+    }
+
+    // Update manual refresh state when refreshing completes
+    LaunchedEffect(isRefreshing) {
+        if (!isRefreshing && isManualRefresh) {
+            isManualRefresh = false
+        }
+    }
+
+    // Pull to refresh state
+    val swipeRefreshState = rememberSwipeRefreshState(isRefreshing = isRefreshing)
+
+    Box(modifier = modifier.fillMaxSize()) {
+        // Loading screen overlay - show on initial load OR during manual refresh
+        LoadingScreen(
+            isLoading = (isInitialLoad && isRefreshing) || (isManualRefresh && isRefreshing),
+            message = null,
+            modifier = Modifier.fillMaxSize()
+        )
+        SwipeRefresh(
+            state = swipeRefreshState,
+            onRefresh = {
+                // Mark as manual refresh to show loading overlay
+                isManualRefresh = true
+                // Refresh all favorite movies with current language
+                CoroutineScope(Dispatchers.IO).launch {
+                    refreshMovies()
+                }
+            },
+            modifier = Modifier.fillMaxSize()
+        ) {
+            if (savedMovies.isEmpty() && !isRefreshing && !isInitialLoad) {
+                Box(
+                    modifier = Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(stringResource(R.string.local_saved_empty))
+                }
+            } else {
+                LazyVerticalGrid(
+                    columns = GridCells.Fixed(2),
+                    modifier = Modifier.padding(10.dp),
+                    horizontalArrangement = Arrangement.spacedBy(10.dp),
+                    verticalArrangement = Arrangement.spacedBy(10.dp)
+                ) {
+                    items(savedMovies) { movie ->
+                        MovieFavItem(
+                            movie = movie,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clickable {
+                                    LocalSavedMovies.toggleMovie(context, movie)
+                                    savedMovies = LocalSavedMovies.getSavedMovies(context)
+                                }
+                        )
+                    }
+                }
             }
         }
     }
@@ -201,9 +360,7 @@ fun MovieFavItem(
             placeholder = painterResource(id = R.drawable.background_screen),
             error = painterResource(id = R.drawable.background_screen)
         )
-
         Spacer(modifier = Modifier.height(2.dp))
-
         Text(
             text = movie.title,
             fontSize = 13.sp,
@@ -223,6 +380,29 @@ fun MovieFavItem(
                 }
             },
             fontSize = 11.sp
+        )
+    }
+}
+
+@Preview(showBackground = true, showSystemUi = true)
+@Composable
+private fun FavouriteActivityPreview() {
+    CinemeteorTheme {
+        FavoriteActivityDesign()
+        MovieFavItem(
+            Movie(
+                id = 1,
+                title = "Mockup Movie",
+                overview = "A thief who steals corporate secrets through the use of dream-sharing technology is given the inverse task of planting an idea into the mind of a C.E.O.",
+                posterPath = "", // You can put a URL here or leave it empty/null
+                backdropPath = "",
+                releaseDate = "2010-07-16",
+                voteAverage = 8.8,
+                voteCount = 14000,
+                popularity = 95.0,
+                originalLanguage = "en",
+                originalTitle = "Inception"
+            )
         )
     }
 }
