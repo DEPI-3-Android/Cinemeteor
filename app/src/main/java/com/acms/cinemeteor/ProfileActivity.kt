@@ -67,6 +67,8 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlin.coroutines.resume
+import com.google.accompanist.swiperefresh.SwipeRefresh
+import com.google.accompanist.swiperefresh.rememberSwipeRefreshState
 
 class ProfileActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -123,48 +125,82 @@ fun ProfileDesign(modifier: Modifier = Modifier) {
     var name by remember { mutableStateOf("User Name") }
     var photoUrl by remember { mutableStateOf<android.net.Uri?>(null) }
 
+    // Track initial load to show full screen loading only on first load
+    var isInitialLoad by remember { mutableStateOf(true) }
 
-    // Load user data when screen loads
-    LaunchedEffect(Unit) {
+    // Track manual refresh state (when user swipes to refresh)
+    var isManualRefresh by remember { mutableStateOf(false) }
+
+    // Function to refresh user data
+    fun refreshUserData() {
+        isLoadingUserData = true
         try {
-            if (user != null) {
+            val currentUser = FirebaseAuth.getInstance().currentUser
+            if (currentUser != null) {
                 // Reload user to get latest data
-                suspendCancellableCoroutine<Unit> { continuation ->
-                    user.reload().addOnCompleteListener { reloadTask ->
-                        val currentUser = Firebase.auth.currentUser
-                        email = currentUser?.email ?: "No email"
-                        name = currentUser?.displayName ?: "User Name"
-                        photoUrl = currentUser?.photoUrl
-                        isLoadingUserData = false
-                        continuation.resume(Unit)
-                    }
+                currentUser.reload().addOnCompleteListener { reloadTask ->
+                    val refreshedUser = Firebase.auth.currentUser
+                    email = refreshedUser?.email ?: "No email"
+                    name = refreshedUser?.displayName ?: "User Name"
+                    photoUrl = refreshedUser?.photoUrl
+                    profileImageUrl = refreshedUser?.photoUrl?.toString()
+                    isLoadingUserData = false
                 }
             } else {
                 // If user is null, no reload needed
                 email = "No email"
                 name = "User Name"
                 photoUrl = null
+                profileImageUrl = null
                 isLoadingUserData = false
             }
         } catch (e: Exception) {
             // Fallback to current user data
-            email = user?.email ?: "No email"
-            name = user?.displayName ?: "User Name"
-            photoUrl = user?.photoUrl
+            val currentUser = Firebase.auth.currentUser
+            email = currentUser?.email ?: "No email"
+            name = currentUser?.displayName ?: "User Name"
+            photoUrl = currentUser?.photoUrl
+            profileImageUrl = currentUser?.photoUrl?.toString()
             isLoadingUserData = false
         }
     }
 
+    // Load user data when screen loads
+    LaunchedEffect(Unit) {
+        refreshUserData()
+        // Mark initial load as complete after first refresh
+        kotlinx.coroutines.delay(100)
+        isInitialLoad = false
+    }
+
+    // Update manual refresh state when refreshing completes
+    LaunchedEffect(isLoadingUserData) {
+        if (!isLoadingUserData && isManualRefresh) {
+            isManualRefresh = false
+        }
+    }
+
+    // Pull to refresh state
+    val swipeRefreshState = rememberSwipeRefreshState(isRefreshing = isLoadingUserData)
+
     Box(modifier = modifier.fillMaxSize()) {
-        // Loading screen overlay - shows first until all user data is loaded
+        // Loading screen overlay - show on initial load OR during manual refresh
         LoadingScreen(
-            isLoading = isLoadingUserData,
+            isLoading = (isInitialLoad && isLoadingUserData) || (isManualRefresh && isLoadingUserData),
             message = null,
             modifier = Modifier.fillMaxSize()
         )
 
-        // Content shown only after loading is complete
-        if (!isLoadingUserData) {
+        SwipeRefresh(
+            state = swipeRefreshState,
+            onRefresh = {
+                // Mark as manual refresh to show loading overlay
+                isManualRefresh = true
+                // Refresh user data
+                refreshUserData()
+            },
+            modifier = Modifier.fillMaxSize()
+        ) {
             if (showLangDialog) {
                 LanguageSetupDialog(
                     prefs = context.getSharedPreferences("settings", Context.MODE_PRIVATE),
