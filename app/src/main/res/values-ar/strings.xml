@@ -61,4 +61,19 @@
     <string name="verification_failed">فشل إرسال بريد التحقق</string>
     <string name="signup_failed">فشل التسجيل</string>
     <string name="fill_profile">من فضلك، املأ ملفك الشخصي</string>
+    <string name="connection_error">فشل الاتصال</string>
+    <string name="cloud_saved">المحفوظة في حسابك</string>
+    <string name="cloud_saved_empty">لا توجد أفلام محفوظة في حسابك</string>
+    <string name="synced_movies">الأفلام المتزامنة: </string>
+    <string name="added_to_cloud">أُضيفت إلى حسابك</string>
+    <string name="removed_from_cloud">أُزيلت من حسابك</string>
+    <string name="local_saved_empty">لا توجد أفلام محفوظة على هذا الجهاز</string>
+    <string name="nav_home">الرئيسية</string>
+    <string name="nav_favourites">المفضلة</string>
+    <string name="nav_profile">الملف الشخصي</string>
+    <string name="saved">تم الحفظ</string>
+    <string name="play">تشغيل</string>
+    <string name="read_less">عرض أقل</string>
+    <string name="read_more">عرض المزيد</string>
+    <string name="similar_movies">أفلام مشابهة</string>
 </resources>

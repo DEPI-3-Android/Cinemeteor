@@ -15,7 +15,7 @@
     <string name="confirm_password">Confirm Password</string>
     <string name="password_not_match">Your passwords do not match</string>
     <string name="check_email_inbox">Check your email inbox</string>
-    <string name="login_failed">Login Failed</string>
+    <string name="login_failed">Login failed</string>
     <string name="user_not_found">User not found</string>
     <string name="verification_required">Verify your email first</string>
     <string name="logout">Logout</string>
@@ -60,7 +60,23 @@
     <string name="create_account">Create Account</string>
     <string name="verification_sent">Open your Inbox</string>
     <string name="nonexistent_account">Account not found. Please Sign Up first</string>
-    <string name="verification_failed">Verification Email Failed</string>
+    <string name="verification_failed">Verification email failed</string>
     <string name="signup_failed">Sign up failed</string>
     <string name="fill_profile">Please, fill your profile</string>
+    <string name="connection_error">Connection Error</string>
+    <string name="cloud_saved">Saved in your account</string>
+    <string name="cloud_saved_empty">No movies saved in your account</string>
+    <string name="synced_movies">Synced movies: </string>
+    <string name="added_to_cloud">Added to your account</string>
+    <string name="removed_from_cloud">Removed from your account</string>
+    <string name="local_saved_empty">No movies saved on this device</string>
+    <string name="nav_home">Home</string>
+    <string name="nav_favourites">Favourites</string>
+    <string name="nav_profile">Profile</string>
+    <string name="saved">Saved</string>
+    <string name="play">Play</string>
+    <string name="read_less">Read less</string>
+    <string name="read_more">Read more</string>
+    <string name="similar_movies">Similar Movies</string>
+    <string name="reviews">Reviews</string>
 </resources>

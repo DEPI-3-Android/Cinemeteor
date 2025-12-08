@@ -34,49 +34,28 @@ import com.example.compose.snippets.components.NavigationBarBottom
 
 class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
-
         val prefs = getSharedPreferences("settings", Context.MODE_PRIVATE)
         val langCode = prefs.getString("lang", "en")
         val localeList = if (langCode == "ar")
             LocaleListCompat.forLanguageTags("ar")
         else
             LocaleListCompat.forLanguageTags("en")
-
         AppCompatDelegate.setApplicationLocales(localeList)
         val mode = prefs.getInt("mode", AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM)
         AppCompatDelegate.setDefaultNightMode(mode)
-
         super.onCreate(savedInstanceState)
-
-        val sharedPref = getSharedPreferences("app_prefs", Context.MODE_PRIVATE)
-        val onboardingShown = sharedPref.getBoolean("onboarding_show", false)
         enableEdgeToEdge()
         setContent {
             CinemeteorTheme {
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-//                    var showSplash by remember { mutableStateOf(true) }
-                    var showOnboarding by rememberSaveable { mutableStateOf(!onboardingShown) }
-
-                    if (showOnboarding) {
-                        OnboardingScreen(
-                            modifier = Modifier.padding(innerPadding),
-                            onFinish = {
-                                sharedPref.edit().putBoolean("onboarding_show", true).apply()
-                                showOnboarding = false
-                            }
-                        )
-                    } else {
-                        NavigationBarBottom(modifier = Modifier.padding(innerPadding))
-                    }
+                    NavigationBarBottom(modifier = Modifier.padding(innerPadding))
                 }
             }
         }
     }
 }
-
-@Preview(showBackground = true, showSystemUi = true)
 @Composable
-fun Greeting(modifier: Modifier = Modifier) {
+fun test(modifier: Modifier = Modifier) {
     val context = LocalContext.current
     Box(
         modifier = Modifier.fillMaxSize(),
@@ -97,6 +76,13 @@ fun Greeting(modifier: Modifier = Modifier) {
         ) {
             Text(text = "${stringResource(R.string.settings)}")
         }
+    }
+}
+@Preview(showBackground = true, showSystemUi = true)
+@Composable
+private fun testPreview() {
+    CinemeteorTheme {
+        test(modifier = Modifier)
     }
 }
 

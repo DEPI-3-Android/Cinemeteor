@@ -1,0 +1,32 @@
+[33mec1034f[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m)[m create profile
+[33mb2204b7[m Merge branch 'main' of https://github.com/dePI-3-Android/cinemeteor
+[33m10bfe7a[m Add TMDB API key setup documentation; configure Java toolchain for compatibility; enhance Gradle properties and build scripts for testing and packaging; implement comprehensive unit and UI tests for MovieRepository and FilmActivity.
+[33m644e408[m favorites done
+[33mb9cbf3c[m upgrading authentication
+[33m461810a[m profile avatar
+[33mb3c654b[m profile avatar
+[33m06a39a2[m adjust profile avatar
+[33m164cd54[m Add swipe-to-refresh functionality in FilmActivity; implement refresh logic for movie details, similar movies, and reviews; enhance loading state management for improved user experience.
+[33m883b34c[m Add swipe-to-refresh functionality in Home and Favorite screens; implement fetching of similar movies and reviews in FilmActivity; enhance repository and API service for new data retrieval; update Movie model to include review data.
+[33mfd69ab9[m Add loading screens and language handling across multiple activities; implement movie details fetching with fallback; enhance repository methods for language support.
+[33mea7c4d6[m fix login bug
+[33m165dcf4[m ’Merging
+[33m3d30621[m Merge remote-tracking branch 'origin/Sara'
+[33m682a0e5[m Merge pull request #4 from DEPI-3-Android/feature-ahmed-v2
+[33mb19d5df[m[33m ([m[1;31morigin/feature-ahmed-v2[m[33m)[m Add navigation bar
+[33m8146404[m Merge remote-tracking branch 'origin/Sara' into Sara
+[33m9895270[m logic done
+[33m85508b0[m logic done
+[33m13921b9[m logic done
+[33m3b4a110[m add about & profile update
+[33m435de63[m Merge pull request #3 from DEPI-3-Android/TMDB
+[33mcaa69e6[m[33m ([m[1;31morigin/TMDB[m[33m)[m Enhance Cinemeteor app with TMDB API integration and improved UI features
+[33med66479[m Merge pull request #2 from DEPI-3-Android/feature-Ahmed Reda
+[33mabe500d[m[33m ([m[1;31morigin/feature-ahmed[m[33m)[m update
+[33m1c56013[m update
+[33m1c30ed2[m Replace all old files with new version
+[33mf0a546b[m Translation & colors update
+[33ma6e25d5[m Merge remote changes
+[33mb83aa0a[m Initial commit
+[33m7bc1764[m Revise README with project details and features
+[33m3c003ec[m Initial commit

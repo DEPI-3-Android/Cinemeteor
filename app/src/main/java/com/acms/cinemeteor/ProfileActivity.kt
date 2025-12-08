@@ -8,7 +8,6 @@ import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
 import android.util.Log
-import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
@@ -16,6 +15,7 @@ import androidx.appcompat.app.AppCompatDelegate
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -25,6 +25,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -35,14 +36,17 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -52,17 +56,15 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.core.os.LocaleListCompat
-import com.acms.cinemeteor.BuildConfig
+import coil.compose.rememberAsyncImagePainter
 import com.acms.cinemeteor.ui.components.LoadingScreen
 import com.acms.cinemeteor.ui.theme.CinemeteorTheme
-import com.acms.cinemeteor.utils.LanguageUtils
 import com.google.firebase.Firebase
+import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.auth
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.foundation.layout.Box
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlin.coroutines.resume
 
@@ -92,6 +94,7 @@ class ProfileActivity : AppCompatActivity() {
         }
     }
 }
+
 private fun onLogoutClick(context: Context) {
     val auth = Firebase.auth
     val authPrefs = context.getSharedPreferences("AuthPrefs", Context.MODE_PRIVATE)
@@ -104,19 +107,23 @@ private fun onLogoutClick(context: Context) {
     (context as? Activity)?.finishAffinity()
     context.startActivity(intent)
 }
+
 @Composable
 fun ProfileDesign(modifier: Modifier = Modifier) {
     val context = LocalContext.current
     var showModeDialog by remember { mutableStateOf(false) }
     var showLangDialog by remember { mutableStateOf(false) }
-    
+
+    val user = FirebaseAuth.getInstance().currentUser
+
+    var profileImageUrl by remember { mutableStateOf(user?.photoUrl?.toString()) }
+
     var isLoadingUserData by remember { mutableStateOf(true) }
     var email by remember { mutableStateOf("No email") }
     var name by remember { mutableStateOf("User Name") }
     var photoUrl by remember { mutableStateOf<android.net.Uri?>(null) }
-    
-    val user = Firebase.auth.currentUser
-    
+
+
     // Load user data when screen loads
     LaunchedEffect(Unit) {
         try {
@@ -147,7 +154,7 @@ fun ProfileDesign(modifier: Modifier = Modifier) {
             isLoadingUserData = false
         }
     }
-    
+
     Box(modifier = modifier.fillMaxSize()) {
         // Loading screen overlay - shows first until all user data is loaded
         LoadingScreen(
@@ -155,7 +162,7 @@ fun ProfileDesign(modifier: Modifier = Modifier) {
             message = null,
             modifier = Modifier.fillMaxSize()
         )
-        
+
         // Content shown only after loading is complete
         if (!isLoadingUserData) {
             if (showLangDialog) {
@@ -171,100 +178,107 @@ fun ProfileDesign(modifier: Modifier = Modifier) {
                 )
             }
 
-    Column(
-        verticalArrangement = Arrangement.Top,
-        horizontalAlignment = Alignment.Start,
-        modifier = modifier
-            .padding(horizontal = 12.dp, vertical = 32.dp)
-    ) {
-        Row(
-            horizontalArrangement = Arrangement.Start,
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Text(
-                text = stringResource(R.string.profile),
-                style = MaterialTheme.typography.headlineMedium,
-                fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.secondary,
-                modifier = Modifier
-                    .padding(start = 8.dp, top = 8.dp)
-                    .weight(1f, true)
-            )
-        }
-    }
-    Column(
-        verticalArrangement = Arrangement.Top,
-        horizontalAlignment = Alignment.Start,
-        modifier = modifier
-            .fillMaxSize()
-            .padding(horizontal = 12.dp)
-            .padding(top = 80.dp)
-    ) {
-
-        Column(
-            verticalArrangement = Arrangement.Top,
-            horizontalAlignment = Alignment.CenterHorizontally,
-            modifier = modifier
-                .fillMaxWidth()
-                .padding(horizontal = 12.dp, vertical = 28.dp)
-        ) {
-            Image(
-                painter = painterResource(R.drawable.user),
-                contentDescription = "Profile icon",
-                colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.tertiary),
-                modifier = Modifier
-                    .size(120.dp)
-                    .padding(top = 12.dp)
-            )
-            Text(
-                text = name,
-                style = MaterialTheme.typography.titleMedium,
-                modifier = Modifier.padding(vertical = 8.dp)
-            )
-            Text(
-                text = email,
-                style = MaterialTheme.typography.titleSmall
-            )
-        }
-
-        MixedButton(
-            icon = R.drawable.person,
-            text = R.string.edit_profile,
-            onClickAction = {
-                context.startActivity(
-                    Intent(context, EditProfileActivity::class.java)
-                )
+            Column(
+                verticalArrangement = Arrangement.Top,
+                horizontalAlignment = Alignment.Start,
+                modifier = modifier
+                    .padding(horizontal = 12.dp, vertical = 32.dp)
+            ) {
+                Row(
+                    horizontalArrangement = Arrangement.Start,
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Text(
+                        text = stringResource(R.string.profile),
+                        style = MaterialTheme.typography.headlineMedium,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.secondary,
+                        modifier = Modifier
+                            .padding(start = 8.dp, top = 8.dp)
+                            .weight(1f, true)
+                    )
+                }
             }
-        )
+            Column(
+                verticalArrangement = Arrangement.Top,
+                horizontalAlignment = Alignment.Start,
+                modifier = modifier
+                    .fillMaxSize()
+                    .padding(horizontal = 12.dp)
+                    .padding(top = 80.dp)
+            ) {
+                Column(
+                    verticalArrangement = Arrangement.Top,
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    modifier = modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 12.dp, vertical = 28.dp)
+                ) {
+                    Image(
+                        painter =
+                            if (profileImageUrl != null)
+                                rememberAsyncImagePainter(profileImageUrl)
+                            else
+                                painterResource(R.drawable.user),
+                        contentDescription = "Profile Image",
+                        modifier = Modifier
+                            .size(150.dp)
+                            .clip(CircleShape),
+                        contentScale = ContentScale.Crop
+                    )
+                    Text(
+                        text = name,
+                        style = MaterialTheme.typography.titleMedium,
+                        modifier = Modifier.padding(vertical = 8.dp)
+                    )
+                    Text(
+                        text = email,
+                        style = MaterialTheme.typography.titleSmall
+                    )
+                }
 
-
-        MixedButton(
-            icon = R.drawable.language,
-            text = R.string.language,
-            onClickAction = { showLangDialog = true }
-        )
-
-        MixedButton(
-            icon = R.drawable.mode,
-            text = R.string.theme,
-            onClickAction = { showModeDialog = true }
-        )
-
-        MixedButton(
-            icon = R.drawable.info,
-            text = R.string.about,
-            onClickAction = {
-                context.startActivity(
-                    Intent(context, AboutActivity::class.java)
+                MixedButton(
+                    icon = R.drawable.person,
+                    text = R.string.edit_profile,
+                    onClickAction = {
+                        context.startActivity(
+                            Intent(context, EditProfileActivity::class.java)
+                        )
+                    }
                 )
-            }
-        )
-
-        MixedButton(
-            icon = R.drawable.logout,
-            text = R.string.logout,
-            onClickAction = { onLogoutClick(context) }
-        )
+                MixedButton(
+                    icon = R.drawable.language,
+                    text = R.string.language,
+                    onClickAction = { showLangDialog = true }
+                )
+                MixedButton(
+                    icon = R.drawable.mode,
+                    text = R.string.theme,
+                    onClickAction = { showModeDialog = true }
+                )
+                MixedButton(
+                    icon = R.drawable.baseline_bookmark_added_24,
+                    text = R.string.cloud_saved,
+                    onClickAction = {
+                        context.startActivity(
+                            Intent(context, CloudSavedActivity::class.java)
+                        )
+                    }
+                )
+                MixedButton(
+                    icon = R.drawable.info,
+                    text = R.string.about,
+                    onClickAction = {
+                        context.startActivity(
+                            Intent(context, AboutActivity::class.java)
+                        )
+                    }
+                )
+                MixedButton(
+                    icon = R.drawable.logout,
+                    text = R.string.logout,
+                    onClickAction = { onLogoutClick(context) }
+                )
             }
         }
     }
@@ -438,7 +452,7 @@ fun LanguageSetupDialog(
                     Spacer(modifier = Modifier.width(8.dp))
                     TextButton(onClick = {
                         val previousLang = currentLang
-                        
+
                         // Refresh saved movies with new language before recreating activity
                         if (previousLang != selectedLang) {
                             val apiKey = BuildConfig.TMDB_API_KEY.trim()
@@ -457,25 +471,40 @@ fun LanguageSetupDialog(
                                         apiKey,
                                         newLanguageCode
                                     )
-                                    
+
                                     refreshResult.onSuccess {
-                                        Log.d("ProfileActivity", "Movies refreshed successfully, changing language...")
+                                        Log.d(
+                                            "ProfileActivity",
+                                            "Movies refreshed successfully, changing language..."
+                                        )
                                         // After refresh completes, save language preference, change language and recreate
                                         Handler(Looper.getMainLooper()).post {
                                             editor.putString("lang", selectedLang).apply()
-                                            LanguageChangeHelper().changeLanguage(context, selectedLang)
+                                            LanguageChangeHelper().changeLanguage(
+                                                context,
+                                                selectedLang
+                                            )
                                             onDismiss()
                                             // Give time for SharedPreferences to persist
-                                            Handler(Looper.getMainLooper()).postDelayed({
-                                                (context as? Activity)?.recreate()
-                                            }, 500) // Increased delay to ensure everything completes
+                                            Handler(Looper.getMainLooper()).postDelayed(
+                                                {
+                                                    (context as? Activity)?.recreate()
+                                                },
+                                                500
+                                            ) // Increased delay to ensure everything completes
                                         }
                                     }.onFailure { exception ->
-                                        Log.e("ProfileActivity", "Failed to refresh movies: ${exception.message}")
+                                        Log.e(
+                                            "ProfileActivity",
+                                            "Failed to refresh movies: ${exception.message}"
+                                        )
                                         // Still change language even if refresh fails
                                         Handler(Looper.getMainLooper()).post {
                                             editor.putString("lang", selectedLang).apply()
-                                            LanguageChangeHelper().changeLanguage(context, selectedLang)
+                                            LanguageChangeHelper().changeLanguage(
+                                                context,
+                                                selectedLang
+                                            )
                                             onDismiss()
                                             Handler(Looper.getMainLooper()).postDelayed({
                                                 (context as? Activity)?.recreate()
@@ -532,6 +561,7 @@ fun RadioButtonWithText(
         Text(text = text)
     }
 }
+
 @Preview(showBackground = true)
 @Composable
 fun ProfilePreview() {
@@ -539,3 +569,5 @@ fun ProfilePreview() {
         ProfileDesign()
     }
 }
+
+

@@ -2,6 +2,7 @@ package com.acms.cinemeteor
 
 import android.content.Intent
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
@@ -30,7 +31,7 @@ import kotlinx.coroutines.delay
 class SplashScreen : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         val authPrefs = getSharedPreferences("AuthPrefs", MODE_PRIVATE)
-        val isLoggedIn = authPrefs.getBoolean("isLoggedIn", true)
+        val isLoggedIn = authPrefs.getBoolean("isLoggedIn", false)
         installSplashScreen()
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
