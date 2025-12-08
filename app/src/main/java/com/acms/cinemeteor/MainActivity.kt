@@ -1,7 +1,10 @@
 package com.acms.cinemeteor
 
+import android.Manifest
 import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageManager
+import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -27,6 +30,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.app.ActivityCompat
 import androidx.core.os.LocaleListCompat
 import com.acms.cinemeteor.OnBoardingScreen.OnboardingScreen
 import com.acms.cinemeteor.ui.theme.CinemeteorTheme
@@ -34,6 +38,19 @@ import com.example.compose.snippets.components.NavigationBarBottom
 
 class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            if (checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
+                ActivityCompat.requestPermissions(
+                    this,
+                    arrayOf(Manifest.permission.POST_NOTIFICATIONS),
+                    1001
+                )
+            }
+        }
+
         val prefs = getSharedPreferences("settings", Context.MODE_PRIVATE)
         val langCode = prefs.getString("lang", "en")
         val localeList = if (langCode == "ar")
@@ -43,7 +60,7 @@ class MainActivity : AppCompatActivity() {
         AppCompatDelegate.setApplicationLocales(localeList)
         val mode = prefs.getInt("mode", AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM)
         AppCompatDelegate.setDefaultNightMode(mode)
-        super.onCreate(savedInstanceState)
+
         enableEdgeToEdge()
         setContent {
             CinemeteorTheme {
@@ -54,6 +71,7 @@ class MainActivity : AppCompatActivity() {
         }
     }
 }
+
 @Composable
 fun test(modifier: Modifier = Modifier) {
     val context = LocalContext.current

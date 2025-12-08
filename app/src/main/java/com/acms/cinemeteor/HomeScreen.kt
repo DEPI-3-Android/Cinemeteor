@@ -63,12 +63,14 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.AsyncImage
 import android.util.Log
+import com.acms.cinemeteor.Notification.NotificationsActivity
 import com.acms.cinemeteor.models.Movie
 import com.acms.cinemeteor.ui.components.LoadingScreen
 import com.acms.cinemeteor.utils.ImageUtils
 import com.acms.cinemeteor.utils.LanguageUtils
 import com.acms.cinemeteor.viewmodel.MovieViewModel
 import kotlinx.coroutines.delay
+import kotlin.jvm.java
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -138,13 +140,17 @@ fun MoviesHomeScreen(
                         )
                     },
                     actions = {
-                        IconButton(onClick = { /* TODO: Notification */ }) {
+                        IconButton(onClick = {
+                            context.startActivity(Intent(context, NotificationsActivity::class.java))
+                        }) {
                             Icon(
                                 imageVector = Icons.Default.Notifications,
                                 contentDescription = stringResource(R.string.notifications),
                                 tint = Color.White
                             )
                         }
+
+
                     },
                     colors = TopAppBarDefaults.topAppBarColors(
                         containerColor = Color.Transparent
