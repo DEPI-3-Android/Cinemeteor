@@ -16,6 +16,35 @@ if (localPropertiesFile.exists()) {
     localPropertiesFile.inputStream().use { localProperties.load(it) }
 }
 
+// Helper function to get API key from multiple sources (priority order):
+// 1. Gradle project property (-P flag)
+// 2. Environment variable
+// 3. local.properties file
+fun getApiKey(keyName: String): String {
+    // Check Gradle project property first (e.g., -PTMDB_API_KEY=your_key)
+    val projectProperty = project.findProperty(keyName) as String?
+    if (!projectProperty.isNullOrBlank()) {
+        println("$keyName loaded from Gradle project property")
+        return projectProperty.trim()
+    }
+    
+    // Check environment variable
+    val envVar = System.getenv(keyName)
+    if (!envVar.isNullOrBlank()) {
+        println("$keyName loaded from environment variable")
+        return envVar.trim()
+    }
+    
+    // Fallback to local.properties
+    val localProp = localProperties.getProperty(keyName, "").trim()
+    if (localProp.isNotEmpty()) {
+        println("$keyName loaded from local.properties")
+        return localProp
+    }
+    
+    return ""
+}
+
 android {
     namespace = "com.acms.cinemeteor"
     compileSdk {
@@ -31,24 +60,30 @@ android {
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         
-        // Load TMDB API key from local.properties
-        val tmdbApiKey = localProperties.getProperty("TMDB_API_KEY", "").trim()
+        // Load TMDB API key from multiple sources
+        val tmdbApiKey = getApiKey("TMDB_API_KEY")
         if (tmdbApiKey.isNotEmpty()) {
             buildConfigField("String", "TMDB_API_KEY", "\"$tmdbApiKey\"")
             println("TMDB_API_KEY loaded successfully (length: ${tmdbApiKey.length})")
         } else {
             buildConfigField("String", "TMDB_API_KEY", "\"\"")
-            println("WARNING: TMDB_API_KEY not found in local.properties!")
+            println("WARNING: TMDB_API_KEY not found! Check:")
+            println("  - Gradle project property: -PTMDB_API_KEY=your_key")
+            println("  - Environment variable: TMDB_API_KEY")
+            println("  - local.properties file: TMDB_API_KEY=your_key")
         }
 
-        // Load IMGBB API key from local.properties
-        val IMGBBApiKey = localProperties.getProperty("IMGBB_API_KEY", "").trim()
+        // Load IMGBB API key from multiple sources
+        val IMGBBApiKey = getApiKey("IMGBB_API_KEY")
         if (IMGBBApiKey.isNotEmpty()) {
             buildConfigField("String", "IMGBB_API_KEY", "\"$IMGBBApiKey\"")
             println("IMGBB_API_KEY loaded successfully (length: ${IMGBBApiKey.length})")
         } else {
             buildConfigField("String", "IMGBB_API_KEY", "\"\"")
-            println("WARNING: IMGBB_API_KEY not found in local.properties!")
+            println("WARNING: IMGBB_API_KEY not found! Check:")
+            println("  - Gradle project property: -PIMGBB_API_KEY=your_key")
+            println("  - Environment variable: IMGBB_API_KEY")
+            println("  - local.properties file: IMGBB_API_KEY=your_key")
         }
     }
     

@@ -60,11 +60,6 @@
             android:label="@string/app_name"
             android:theme="@style/Theme.Cinemeteor" />
         <activity
-            android:name=".CloudSavedActivity"
-            android:exported="true"
-            android:label="@string/app_name"
-            android:theme="@style/Theme.Cinemeteor" />
-        <activity
             android:name=".Notification.NotificationsActivity"
             android:exported="true"
             android:label="Notifications"

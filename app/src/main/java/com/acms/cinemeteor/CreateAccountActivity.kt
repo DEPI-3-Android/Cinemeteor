@@ -234,7 +234,8 @@ fun CreateAccountDesign(modifier: Modifier = Modifier) {
                 val I = Intent(context, MainActivity::class.java).apply {
                     flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
                 }
-            },
+                context.startActivity(I)
+                      },
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(bottom = 12.dp)

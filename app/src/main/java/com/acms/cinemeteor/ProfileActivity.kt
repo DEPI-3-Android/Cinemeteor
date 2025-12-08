@@ -293,15 +293,6 @@ fun ProfileDesign(modifier: Modifier = Modifier) {
                     onClickAction = { showModeDialog = true }
                 )
                 MixedButton(
-                    icon = R.drawable.baseline_bookmark_added_24,
-                    text = R.string.cloud_saved,
-                    onClickAction = {
-                        context.startActivity(
-                            Intent(context, CloudSavedActivity::class.java)
-                        )
-                    }
-                )
-                MixedButton(
                     icon = R.drawable.info,
                     text = R.string.about,
                     onClickAction = {
