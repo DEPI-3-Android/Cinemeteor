@@ -12,7 +12,7 @@ http {
 
   server {
     listen <%= ENV["PORT"] %>;
-    root <%= ENV["NGINX_ROOT"] || "web/promo" %>;
+    root <%= ENV["NGINX_ROOT"] || "dist" %>;
     index index.html;
 
     location / {
