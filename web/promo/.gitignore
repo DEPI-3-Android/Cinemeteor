@@ -1,0 +1,8 @@
+node_modules
+.gradle
+.kotlin
+.idea
+.vscode
+node_modules
+dist
+
