@@ -17,13 +17,10 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -63,12 +60,9 @@ import com.google.accompanist.swiperefresh.SwipeRefresh
 import com.google.accompanist.swiperefresh.rememberSwipeRefreshState
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
-import kotlinx.coroutines.launch
 
 class FavouriteActivity : AppCompatActivity() {
     @OptIn(ExperimentalMaterial3Api::class)
@@ -222,90 +216,51 @@ object LocalSavedMovies {
 @Composable
 fun FavoriteActivityDesign(modifier: Modifier = Modifier) {
     val context = LocalContext.current
-    val apiKey = BuildConfig.TMDB_API_KEY.trim()
-    var savedMovies by remember { mutableStateOf(LocalSavedMovies.getSavedMovies(context)) }
-    var isRefreshing by remember { mutableStateOf(false) }
-    // Function to refresh movies
-    suspend fun refreshMovies() {
-        if (apiKey.isNotEmpty() && apiKey != "\"\"") {
-            isRefreshing = true
-            try {
-                val refreshResult =
-                    LocalSavedMovies.refreshMoviesWithCurrentLanguage(context, apiKey)
-                refreshResult.onSuccess {
-                    // Small delay to ensure data is persisted before reading
-                    kotlinx.coroutines.delay(150)
-                    savedMovies = LocalSavedMovies.getSavedMovies(context)
-                    isRefreshing = false
-                    Log.d(
-                        "SavedFilmsScreen",
-                        "Movies refreshed successfully with language: ${
-                            LanguageUtils.getLanguageCode(context)
-                        }"
-                    )
-                }.onFailure { exception ->
-                    Log.e("SavedFilmsScreen", "Failed to refresh movies: ${exception.message}")
-                    // Keep current movies if refresh fails, but still update the list
-                    savedMovies = LocalSavedMovies.getSavedMovies(context)
-                    isRefreshing = false
-                }
-            } catch (e: Exception) {
-                Log.e("SavedFilmsScreen", "Exception refreshing movies", e)
-                savedMovies = LocalSavedMovies.getSavedMovies(context)
-                isRefreshing = false
-            }
-        }
+    var savedMovies by remember { mutableStateOf<List<Movie>>(emptyList()) }
+    var isLoading by remember { mutableStateOf(true) }
+    
+    fun refreshData() {
+        isLoading = true
+        FirestoreHelper.getFavoriteMovies(onSuccess = { movies ->
+            Log.d("FavoriteActivity", "Firestore returned: ${movies.size} movies")
+            savedMovies = movies
+            isLoading = false
+            Toast.makeText(
+                context,
+                "${context.getString(R.string.synced_movies)} ${movies.size}",
+                Toast.LENGTH_SHORT
+            ).show()
+        }, onError = { error ->
+            Log.d("FavoriteActivity", "Error fetching: $error")
+            isLoading = false
+            Toast.makeText(context, error, Toast.LENGTH_SHORT).show()
+        })
     }
-
-    // Track initial load to show full screen loading only on first load
-    var isInitialLoad by remember { mutableStateOf(true) }
-
-    // Track manual refresh state (when user swipes to refresh)
-    var isManualRefresh by remember { mutableStateOf(false) }
-
-    // Refresh movies with current language when screen loads
-    LaunchedEffect(Unit) {
-        refreshMovies()
-        // Mark initial load as complete after first refresh
-        kotlinx.coroutines.delay(100)
-        isInitialLoad = false
+    
+    LaunchedEffect(Unit) { 
+        refreshData() 
     }
-
-    // Update manual refresh state when refreshing completes
-    LaunchedEffect(isRefreshing) {
-        if (!isRefreshing && isManualRefresh) {
-            isManualRefresh = false
-        }
-    }
-
-    // Pull to refresh state
-    val swipeRefreshState = rememberSwipeRefreshState(isRefreshing = isRefreshing)
-
-    Box(modifier = modifier.fillMaxSize()) {
-        // Loading screen overlay - show on initial load OR during manual refresh
-        LoadingScreen(
-            isLoading = (isInitialLoad && isRefreshing) || (isManualRefresh && isRefreshing),
-            message = null,
-            modifier = Modifier.fillMaxSize()
-        )
-        SwipeRefresh(
-            state = swipeRefreshState,
-            onRefresh = {
-                // Mark as manual refresh to show loading overlay
-                isManualRefresh = true
-                // Refresh all favorite movies with current language
-                CoroutineScope(Dispatchers.IO).launch {
-                    refreshMovies()
-                }
-            },
-            modifier = Modifier.fillMaxSize()
-        ) {
-            if (savedMovies.isEmpty() && !isRefreshing && !isInitialLoad) {
+    
+    val swipeRefreshState = rememberSwipeRefreshState(isRefreshing = isLoading)
+    
+    SwipeRefresh(
+        state = swipeRefreshState,
+        onRefresh = { refreshData() },
+        modifier = Modifier.fillMaxSize()
+    ) {
+        Box(modifier = modifier.fillMaxSize()) {
+            if (isLoading) {
+                LoadingScreen(
+                    isLoading = true,
+                    message = null,
+                    modifier = Modifier.fillMaxSize()
+                )
+            } else if (savedMovies.isEmpty()) {
                 Box(
                     modifier = Modifier.fillMaxSize(),
                     contentAlignment = Alignment.Center
                 ) {
-                    Text(stringResource(R.string.local_saved_empty))
+                    Text(stringResource(R.string.cloud_saved_empty))
                 }
             } else {
                 LazyVerticalGrid(
@@ -320,8 +275,23 @@ fun FavoriteActivityDesign(modifier: Modifier = Modifier) {
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .clickable {
-                                    LocalSavedMovies.toggleMovie(context, movie)
-                                    savedMovies = LocalSavedMovies.getSavedMovies(context)
+                                    FirestoreHelper.toggleFavrite(
+                                        movie = movie,
+                                        onResult = { newState ->
+                                            refreshData() // Refresh the list after toggle
+                                            val message =
+                                                if (newState) R.string.added_to_cloud else R.string.removed_from_cloud
+                                            Toast.makeText(context, message, Toast.LENGTH_SHORT)
+                                                .show()
+                                        },
+                                        onError = { errorMessage ->
+                                            Toast.makeText(
+                                                context,
+                                                errorMessage,
+                                                Toast.LENGTH_SHORT
+                                            ).show()
+                                        }
+                                    )
                                 }
                         )
                     }

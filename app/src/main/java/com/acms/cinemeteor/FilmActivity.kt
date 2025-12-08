@@ -179,9 +179,6 @@ fun FilmDetailsScreen(movie: Movie) {
     var currentMovie by remember { mutableStateOf(movie) }
     val posterUrl = currentMovie.posterPath?.let { ImageUtils.getPosterUrl(it) }
     var expanded by remember { mutableStateOf(false) }
-    var isSaved by remember {
-        mutableStateOf(LocalSavedMovies.isMovieSaved(context, currentMovie.id))
-    }
     var isLoadingMovieDetails by remember { mutableStateOf(false) }
     var similarMovies by remember { mutableStateOf<List<Movie>>(emptyList()) }
     var reviews by remember { mutableStateOf<List<Review>>(emptyList()) }
@@ -214,7 +211,6 @@ fun FilmDetailsScreen(movie: Movie) {
                     repository.getMovieDetailsWithFallback(apiKey, movie.id, languageCode)
                 refreshResult.onSuccess { updatedMovie ->
                     currentMovie = updatedMovie
-                    isSaved = LocalSavedMovies.isMovieSaved(context, updatedMovie.id)
                     isLoadingMovieDetails = false
                     Log.d("FilmActivity", "Movie details refreshed: title='${updatedMovie.title}'")
                 }.onFailure {
@@ -369,7 +365,7 @@ fun FilmDetailsScreen(movie: Movie) {
                             IconButton(
                                 onClick = {
                                     FirestoreHelper.toggleFavrite(
-                                        movie = movie,
+                                        movie = currentMovie,
                                         onResult = { newState ->
                                             isAccSaved = newState
                                             val message =
@@ -389,20 +385,7 @@ fun FilmDetailsScreen(movie: Movie) {
                                 }) {
                                 Icon(
                                     painter = painterResource(
-                                        id = if (isAccSaved) R.drawable.baseline_bookmark_24 else R.drawable.baseline_bookmark_border_24
-                                    ),
-                                    contentDescription = "SaveFirebase",
-                                    tint = MaterialTheme.colorScheme.primary
-                                )
-                            }
-                            IconButton(onClick = {
-                                LocalSavedMovies.toggleMovie(context, currentMovie)
-                                isSaved =
-                                    LocalSavedMovies.isMovieSaved(context, currentMovie.id)
-                            }) {
-                                Icon(
-                                    painter = painterResource(
-                                        id = if (isSaved) R.drawable.ic_saved else R.drawable.ic_save
+                                        id = if (isAccSaved) R.drawable.wishlist else R.drawable.add_wishlist
                                     ),
                                     contentDescription = "Save",
                                     tint = MaterialTheme.colorScheme.primary
