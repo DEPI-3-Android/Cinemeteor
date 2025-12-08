@@ -1,0 +1,60 @@
+{
+    "logs": [
+        {
+            "outputFile": "com.acms.cinemeteor.app-mergeReleaseResources-67:/values-night-v8/values-night-v8.xml",
+            "map": [
+                {
+                    "source": "D:\\Work\\Internships\\DEPI-Android\\Final Project\\cinemeteor\\app\\src\\main\\res\\values-night\\colors.xml",
+                    "from": {
+                        "startLines": "5,2,6,4,7,3",
+                        "startColumns": "4,4,4,4,4,4",
+                        "startOffsets": "182,57,228,143,270,100",
+                        "endColumns": "44,41,40,37,43,41",
+                        "endOffsets": "222,94,264,176,309,137"
+                    },
+                    "to": {
+                        "startLines": "2,3,4,5,6,7",
+                        "startColumns": "4,4,4,4,4,4",
+                        "startOffsets": "55,100,142,183,221,265",
+                        "endColumns": "44,41,40,37,43,41",
+                        "endOffsets": "95,137,178,216,260,302"
+                    }
+                },
+                {
+                    "source": "C:\\Users\\Ahmed\\.gradle\\caches\\8.13\\transforms\\321fda87365d59bf0f0b4e32b4c08d2a\\transformed\\appcompat-1.7.1\\res\\values-night-v8\\values-night-v8.xml",
+                    "from": {
+                        "startLines": "2,3,4,5,6,7,8,9",
+                        "startColumns": "4,4,4,4,4,4,4,4",
+                        "startOffsets": "55,125,209,293,389,491,593,687",
+                        "endColumns": "69,83,83,95,101,101,93,88",
+                        "endOffsets": "120,204,288,384,486,588,682,771"
+                    },
+                    "to": {
+                        "startLines": "9,10,11,12,13,14,15,16",
+                        "startColumns": "4,4,4,4,4,4,4,4",
+                        "startOffsets": "393,463,547,631,727,829,931,1025",
+                        "endColumns": "69,83,83,95,101,101,93,88",
+                        "endOffsets": "458,542,626,722,824,926,1020,1109"
+                    }
+                },
+                {
+                    "source": "C:\\Users\\Ahmed\\.gradle\\caches\\8.13\\transforms\\53b7a55efdcddab70a4c2cd6d7346243\\transformed\\core-splashscreen-1.0.1\\res\\values-night-v8\\values-night-v8.xml",
+                    "from": {
+                        "startLines": "2",
+                        "startColumns": "4",
+                        "startOffsets": "55",
+                        "endColumns": "85",
+                        "endOffsets": "136"
+                    },
+                    "to": {
+                        "startLines": "8",
+                        "startColumns": "4",
+                        "startOffsets": "307",
+                        "endColumns": "85",
+                        "endOffsets": "388"
+                    }
+                }
+            ]
+        }
+    ]
+}

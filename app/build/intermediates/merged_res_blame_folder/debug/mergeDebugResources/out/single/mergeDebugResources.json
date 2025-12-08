@@ -1,0 +1,242 @@
+[
+    {
+        "merged": "com.acms.cinemeteor.app-debug-67:/drawable_ic_share.xml.flat",
+        "source": "com.acms.cinemeteor.app-main-69:/drawable/ic_share.xml"
+    },
+    {
+        "merged": "com.acms.cinemeteor.app-debug-67:/drawable_notifications.xml.flat",
+        "source": "com.acms.cinemeteor.app-main-69:/drawable/notifications.xml"
+    },
+    {
+        "merged": "com.acms.cinemeteor.app-debug-67:/drawable_logout.xml.flat",
+        "source": "com.acms.cinemeteor.app-main-69:/drawable/logout.xml"
+    },
+    {
+        "merged": "com.acms.cinemeteor.app-debug-67:/mipmap-xxhdpi_ic_launcher_background.webp.flat",
+        "source": "com.acms.cinemeteor.app-main-69:/mipmap-xxhdpi/ic_launcher_background.webp"
+    },
+    {
+        "merged": "com.acms.cinemeteor.app-debug-67:/drawable_wishlist.xml.flat",
+        "source": "com.acms.cinemeteor.app-main-69:/drawable/wishlist.xml"
+    },
+    {
+        "merged": "com.acms.cinemeteor.app-debug-67:/drawable_ic_launcher_foreground.xml.flat",
+        "source": "com.acms.cinemeteor.app-main-69:/drawable/ic_launcher_foreground.xml"
+    },
+    {
+        "merged": "com.acms.cinemeteor.app-debug-67:/mipmap-xxhdpi_ic_launcher_foreground.webp.flat",
+        "source": "com.acms.cinemeteor.app-main-69:/mipmap-xxhdpi/ic_launcher_foreground.webp"
+    },
+    {
+        "merged": "com.acms.cinemeteor.app-debug-67:/xml_backup_rules.xml.flat",
+        "source": "com.acms.cinemeteor.app-main-69:/xml/backup_rules.xml"
+    },
+    {
+        "merged": "com.acms.cinemeteor.app-debug-67:/drawable_arrow_forward.xml.flat",
+        "source": "com.acms.cinemeteor.app-main-69:/drawable/arrow_forward.xml"
+    },
+    {
+        "merged": "com.acms.cinemeteor.app-debug-67:/mipmap-mdpi_ic_launcher_background.webp.flat",
+        "source": "com.acms.cinemeteor.app-main-69:/mipmap-mdpi/ic_launcher_background.webp"
+    },
+    {
+        "merged": "com.acms.cinemeteor.app-debug-67:/mipmap-hdpi_ic_launcher_background.webp.flat",
+        "source": "com.acms.cinemeteor.app-main-69:/mipmap-hdpi/ic_launcher_background.webp"
+    },
+    {
+        "merged": "com.acms.cinemeteor.app-debug-67:/xml_data_extraction_rules.xml.flat",
+        "source": "com.acms.cinemeteor.app-main-69:/xml/data_extraction_rules.xml"
+    },
+    {
+        "merged": "com.acms.cinemeteor.app-debug-67:/drawable_app_logo.png.flat",
+        "source": "com.acms.cinemeteor.app-main-69:/drawable/app_logo.png"
+    },
+    {
+        "merged": "com.acms.cinemeteor.app-debug-67:/drawable_cinemeteor_red.png.flat",
+        "source": "com.acms.cinemeteor.app-main-69:/drawable/cinemeteor_red.png"
+    },
+    {
+        "merged": "com.acms.cinemeteor.app-debug-67:/drawable_google.png.flat",
+        "source": "com.acms.cinemeteor.app-main-69:/drawable/google.png"
+    },
+    {
+        "merged": "com.acms.cinemeteor.app-debug-67:/mipmap-xxxhdpi_ic_launcher.webp.flat",
+        "source": "com.acms.cinemeteor.app-main-69:/mipmap-xxxhdpi/ic_launcher.webp"
+    },
+    {
+        "merged": "com.acms.cinemeteor.app-debug-67:/drawable_background_screen.png.flat",
+        "source": "com.acms.cinemeteor.app-main-69:/drawable/background_screen.png"
+    },
+    {
+        "merged": "com.acms.cinemeteor.app-debug-67:/drawable_mode.xml.flat",
+        "source": "com.acms.cinemeteor.app-main-69:/drawable/mode.xml"
+    },
+    {
+        "merged": "com.acms.cinemeteor.app-debug-67:/mipmap-anydpi-v26_ic_launcher.xml.flat",
+        "source": "com.acms.cinemeteor.app-main-69:/mipmap-anydpi-v26/ic_launcher.xml"
+    },
+    {
+        "merged": "com.acms.cinemeteor.app-debug-67:/drawable_language.xml.flat",
+        "source": "com.acms.cinemeteor.app-main-69:/drawable/language.xml"
+    },
+    {
+        "merged": "com.acms.cinemeteor.app-debug-67:/drawable_ic_launcher_background.xml.flat",
+        "source": "com.acms.cinemeteor.app-main-69:/drawable/ic_launcher_background.xml"
+    },
+    {
+        "merged": "com.acms.cinemeteor.app-debug-67:/mipmap-xhdpi_ic_launcher_background.webp.flat",
+        "source": "com.acms.cinemeteor.app-main-69:/mipmap-xhdpi/ic_launcher_background.webp"
+    },
+    {
+        "merged": "com.acms.cinemeteor.app-debug-67:/drawable_onboarding.jpg.flat",
+        "source": "com.acms.cinemeteor.app-main-69:/drawable/onboarding.jpg"
+    },
+    {
+        "merged": "com.acms.cinemeteor.app-debug-67:/drawable_settings.xml.flat",
+        "source": "com.acms.cinemeteor.app-main-69:/drawable/settings.xml"
+    },
+    {
+        "merged": "com.acms.cinemeteor.app-debug-67:/mipmap-xhdpi_ic_launcher_foreground.webp.flat",
+        "source": "com.acms.cinemeteor.app-main-69:/mipmap-xhdpi/ic_launcher_foreground.webp"
+    },
+    {
+        "merged": "com.acms.cinemeteor.app-debug-67:/drawable_github.png.flat",
+        "source": "com.acms.cinemeteor.app-main-69:/drawable/github.png"
+    },
+    {
+        "merged": "com.acms.cinemeteor.app-debug-67:/layout_settings_activity.xml.flat",
+        "source": "com.acms.cinemeteor.app-main-69:/layout/settings_activity.xml"
+    },
+    {
+        "merged": "com.acms.cinemeteor.app-debug-67:/mipmap-hdpi_ic_launcher_foreground.webp.flat",
+        "source": "com.acms.cinemeteor.app-main-69:/mipmap-hdpi/ic_launcher_foreground.webp"
+    },
+    {
+        "merged": "com.acms.cinemeteor.app-debug-67:/mipmap-xxhdpi_ic_launcher.webp.flat",
+        "source": "com.acms.cinemeteor.app-main-69:/mipmap-xxhdpi/ic_launcher.webp"
+    },
+    {
+        "merged": "com.acms.cinemeteor.app-debug-67:/mipmap-hdpi_ic_launcher_round.webp.flat",
+        "source": "com.acms.cinemeteor.app-main-69:/mipmap-hdpi/ic_launcher_round.webp"
+    },
+    {
+        "merged": "com.acms.cinemeteor.app-debug-67:/drawable_baseline_bookmark_added_24.xml.flat",
+        "source": "com.acms.cinemeteor.app-main-69:/drawable/baseline_bookmark_added_24.xml"
+    },
+    {
+        "merged": "com.acms.cinemeteor.app-debug-67:/mipmap-xxxhdpi_ic_launcher_background.webp.flat",
+        "source": "com.acms.cinemeteor.app-main-69:/mipmap-xxxhdpi/ic_launcher_background.webp"
+    },
+    {
+        "merged": "com.acms.cinemeteor.app-debug-67:/mipmap-xxxhdpi_ic_launcher_foreground.webp.flat",
+        "source": "com.acms.cinemeteor.app-main-69:/mipmap-xxxhdpi/ic_launcher_foreground.webp"
+    },
+    {
+        "merged": "com.acms.cinemeteor.app-debug-67:/mipmap-mdpi_ic_launcher.webp.flat",
+        "source": "com.acms.cinemeteor.app-main-69:/mipmap-mdpi/ic_launcher.webp"
+    },
+    {
+        "merged": "com.acms.cinemeteor.app-debug-67:/mipmap-xxxhdpi_ic_launcher_round.webp.flat",
+        "source": "com.acms.cinemeteor.app-main-69:/mipmap-xxxhdpi/ic_launcher_round.webp"
+    },
+    {
+        "merged": "com.acms.cinemeteor.app-debug-67:/mipmap-anydpi-v26_ic_launcher_round.xml.flat",
+        "source": "com.acms.cinemeteor.app-main-69:/mipmap-anydpi-v26/ic_launcher_round.xml"
+    },
+    {
+        "merged": "com.acms.cinemeteor.app-debug-67:/mipmap-xhdpi_ic_launcher_round.webp.flat",
+        "source": "com.acms.cinemeteor.app-main-69:/mipmap-xhdpi/ic_launcher_round.webp"
+    },
+    {
+        "merged": "com.acms.cinemeteor.app-debug-67:/drawable_ahmedmo.jpg.flat",
+        "source": "com.acms.cinemeteor.app-main-69:/drawable/ahmedmo.jpg"
+    },
+    {
+        "merged": "com.acms.cinemeteor.app-debug-67:/drawable_baseline_bookmark_24.xml.flat",
+        "source": "com.acms.cinemeteor.app-main-69:/drawable/baseline_bookmark_24.xml"
+    },
+    {
+        "merged": "com.acms.cinemeteor.app-debug-67:/drawable_person.xml.flat",
+        "source": "com.acms.cinemeteor.app-main-69:/drawable/person.xml"
+    },
+    {
+        "merged": "com.acms.cinemeteor.app-debug-67:/drawable_add_wishlist.xml.flat",
+        "source": "com.acms.cinemeteor.app-main-69:/drawable/add_wishlist.xml"
+    },
+    {
+        "merged": "com.acms.cinemeteor.app-debug-67:/drawable_linkedin.png.flat",
+        "source": "com.acms.cinemeteor.app-main-69:/drawable/linkedin.png"
+    },
+    {
+        "merged": "com.acms.cinemeteor.app-debug-67:/mipmap-xxhdpi_ic_launcher_round.webp.flat",
+        "source": "com.acms.cinemeteor.app-main-69:/mipmap-xxhdpi/ic_launcher_round.webp"
+    },
+    {
+        "merged": "com.acms.cinemeteor.app-debug-67:/drawable_app_logo1.png.flat",
+        "source": "com.acms.cinemeteor.app-main-69:/drawable/app_logo1.png"
+    },
+    {
+        "merged": "com.acms.cinemeteor.app-debug-67:/drawable_baseline_visibility_24.xml.flat",
+        "source": "com.acms.cinemeteor.app-main-69:/drawable/baseline_visibility_24.xml"
+    },
+    {
+        "merged": "com.acms.cinemeteor.app-debug-67:/drawable_user.png.flat",
+        "source": "com.acms.cinemeteor.app-main-69:/drawable/user.png"
+    },
+    {
+        "merged": "com.acms.cinemeteor.app-debug-67:/drawable_ic_save.xml.flat",
+        "source": "com.acms.cinemeteor.app-main-69:/drawable/ic_save.xml"
+    },
+    {
+        "merged": "com.acms.cinemeteor.app-debug-67:/drawable_baseline_check_24.xml.flat",
+        "source": "com.acms.cinemeteor.app-main-69:/drawable/baseline_check_24.xml"
+    },
+    {
+        "merged": "com.acms.cinemeteor.app-debug-67:/drawable_cinemeteor.png.flat",
+        "source": "com.acms.cinemeteor.app-main-69:/drawable/cinemeteor.png"
+    },
+    {
+        "merged": "com.acms.cinemeteor.app-debug-67:/drawable_ic_saved.xml.flat",
+        "source": "com.acms.cinemeteor.app-main-69:/drawable/ic_saved.xml"
+    },
+    {
+        "merged": "com.acms.cinemeteor.app-debug-67:/drawable_splash_background.png.flat",
+        "source": "com.acms.cinemeteor.app-main-69:/drawable/splash_background.png"
+    },
+    {
+        "merged": "com.acms.cinemeteor.app-debug-67:/drawable_ammelogo.jpg.flat",
+        "source": "com.acms.cinemeteor.app-main-69:/drawable/ammelogo.jpg"
+    },
+    {
+        "merged": "com.acms.cinemeteor.app-debug-67:/mipmap-hdpi_ic_launcher.webp.flat",
+        "source": "com.acms.cinemeteor.app-main-69:/mipmap-hdpi/ic_launcher.webp"
+    },
+    {
+        "merged": "com.acms.cinemeteor.app-debug-67:/mipmap-xhdpi_ic_launcher.webp.flat",
+        "source": "com.acms.cinemeteor.app-main-69:/mipmap-xhdpi/ic_launcher.webp"
+    },
+    {
+        "merged": "com.acms.cinemeteor.app-debug-67:/mipmap-mdpi_ic_launcher_foreground.webp.flat",
+        "source": "com.acms.cinemeteor.app-main-69:/mipmap-mdpi/ic_launcher_foreground.webp"
+    },
+    {
+        "merged": "com.acms.cinemeteor.app-debug-67:/drawable_baseline_visibility_off_24.xml.flat",
+        "source": "com.acms.cinemeteor.app-main-69:/drawable/baseline_visibility_off_24.xml"
+    },
+    {
+        "merged": "com.acms.cinemeteor.app-debug-67:/drawable_baseline_close_24.xml.flat",
+        "source": "com.acms.cinemeteor.app-main-69:/drawable/baseline_close_24.xml"
+    },
+    {
+        "merged": "com.acms.cinemeteor.app-debug-67:/drawable_baseline_bookmark_border_24.xml.flat",
+        "source": "com.acms.cinemeteor.app-main-69:/drawable/baseline_bookmark_border_24.xml"
+    },
+    {
+        "merged": "com.acms.cinemeteor.app-debug-67:/mipmap-mdpi_ic_launcher_round.webp.flat",
+        "source": "com.acms.cinemeteor.app-main-69:/mipmap-mdpi/ic_launcher_round.webp"
+    },
+    {
+        "merged": "com.acms.cinemeteor.app-debug-67:/drawable_info.xml.flat",
+        "source": "com.acms.cinemeteor.app-main-69:/drawable/info.xml"
+    }
+]

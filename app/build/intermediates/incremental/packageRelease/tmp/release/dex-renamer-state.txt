@@ -1,0 +1,4 @@
+#Mon Dec 08 20:21:02 EET 2025
+base.0=D\:\\Work\\Internships\\DEPI-Android\\Final Project\\cinemeteor\\app\\build\\intermediates\\dex\\release\\minifyReleaseWithR8\\classes.dex
+path.0=classes.dex
+renamed.0=classes.dex

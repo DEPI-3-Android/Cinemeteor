@@ -1,0 +1,71 @@
+com.acms.cinemeteor.app-coil-base-2.6.0-0 C:\Users\Ahmed\.gradle\caches\8.13\transforms\04b4d4f88122063686967fa2c0bbb695\transformed\coil-base-2.6.0\res
+com.acms.cinemeteor.app-play-services-basement-18.8.0-1 C:\Users\Ahmed\.gradle\caches\8.13\transforms\0806f97ce6de8bd8d27356e056102e27\transformed\play-services-basement-18.8.0\res
+com.acms.cinemeteor.app-core-common-2.0.3-2 C:\Users\Ahmed\.gradle\caches\8.13\transforms\092e98b742b602967710a3016ec88ac0\transformed\core-common-2.0.3\res
+com.acms.cinemeteor.app-foundation-release-3 C:\Users\Ahmed\.gradle\caches\8.13\transforms\143781888217fdf941be3d1f4d00189f\transformed\foundation-release\res
+com.acms.cinemeteor.app-material3-release-4 C:\Users\Ahmed\.gradle\caches\8.13\transforms\1a681e9f345756762c3fe928dd32b798\transformed\material3-release\res
+com.acms.cinemeteor.app-datastore-core-release-5 C:\Users\Ahmed\.gradle\caches\8.13\transforms\29643d44cb119c6ab93120f2b83fe4dd\transformed\datastore-core-release\res
+com.acms.cinemeteor.app-core-ktx-1.17.0-6 C:\Users\Ahmed\.gradle\caches\8.13\transforms\2c81200dd3a32d79b20eed27bd4e3af8\transformed\core-ktx-1.17.0\res
+com.acms.cinemeteor.app-lifecycle-runtime-release-7 C:\Users\Ahmed\.gradle\caches\8.13\transforms\2d2197b451c4727f9312949da881e95c\transformed\lifecycle-runtime-release\res
+com.acms.cinemeteor.app-navigation-compose-release-8 C:\Users\Ahmed\.gradle\caches\8.13\transforms\2e43740c6dac4738c2054ea86c902860\transformed\navigation-compose-release\res
+com.acms.cinemeteor.app-startup-runtime-1.1.1-9 C:\Users\Ahmed\.gradle\caches\8.13\transforms\306dbb24a33d4b62a403d39df43d5485\transformed\startup-runtime-1.1.1\res
+com.acms.cinemeteor.app-credentials-play-services-auth-1.3.0-10 C:\Users\Ahmed\.gradle\caches\8.13\transforms\3076938cd6d31b352250d8c353f7ffbe\transformed\credentials-play-services-auth-1.3.0\res
+com.acms.cinemeteor.app-appcompat-1.7.1-11 C:\Users\Ahmed\.gradle\caches\8.13\transforms\321fda87365d59bf0f0b4e32b4c08d2a\transformed\appcompat-1.7.1\res
+com.acms.cinemeteor.app-annotation-experimental-1.4.1-12 C:\Users\Ahmed\.gradle\caches\8.13\transforms\365548da49c6e15214f6fdc3b6f56e78\transformed\annotation-experimental-1.4.1\res
+com.acms.cinemeteor.app-emoji2-1.4.0-13 C:\Users\Ahmed\.gradle\caches\8.13\transforms\38cbd9711bab8a1774b9b1219c35cbf8\transformed\emoji2-1.4.0\res
+com.acms.cinemeteor.app-navigation-runtime-release-14 C:\Users\Ahmed\.gradle\caches\8.13\transforms\44c8d74f5abf6cfb1e091da00db47488\transformed\navigation-runtime-release\res
+com.acms.cinemeteor.app-play-services-base-18.5.0-15 C:\Users\Ahmed\.gradle\caches\8.13\transforms\4872a49ec97534d5a107739a4dd11e47\transformed\play-services-base-18.5.0\res
+com.acms.cinemeteor.app-ads-adservices-java-1.1.0-beta11-16 C:\Users\Ahmed\.gradle\caches\8.13\transforms\4974be904389d7680209e20a1180d64e\transformed\ads-adservices-java-1.1.0-beta11\res
+com.acms.cinemeteor.app-datastore-release-17 C:\Users\Ahmed\.gradle\caches\8.13\transforms\504a926966d6865a813385b6ae98e1ae\transformed\datastore-release\res
+com.acms.cinemeteor.app-credentials-1.3.0-18 C:\Users\Ahmed\.gradle\caches\8.13\transforms\51f1c5621a435f81aa8b70f0518c178c\transformed\credentials-1.3.0\res
+com.acms.cinemeteor.app-lifecycle-livedata-2.9.4-19 C:\Users\Ahmed\.gradle\caches\8.13\transforms\5226805448e6ee5a2fec4f523171cbe0\transformed\lifecycle-livedata-2.9.4\res
+com.acms.cinemeteor.app-core-splashscreen-1.0.1-20 C:\Users\Ahmed\.gradle\caches\8.13\transforms\53b7a55efdcddab70a4c2cd6d7346243\transformed\core-splashscreen-1.0.1\res
+com.acms.cinemeteor.app-constraintlayout-2.1.4-21 C:\Users\Ahmed\.gradle\caches\8.13\transforms\5587bbf754b39ee9a3962c2ffc2c17ef\transformed\constraintlayout-2.1.4\res
+com.acms.cinemeteor.app-cardview-1.0.0-22 C:\Users\Ahmed\.gradle\caches\8.13\transforms\55c828e5bb195dab216e7be6e9838acc\transformed\cardview-1.0.0\res
+com.acms.cinemeteor.app-activity-ktx-1.11.0-23 C:\Users\Ahmed\.gradle\caches\8.13\transforms\5cefcfb701416a0d8d9596feef7522e5\transformed\activity-ktx-1.11.0\res
+com.acms.cinemeteor.app-lifecycle-runtime-compose-release-24 C:\Users\Ahmed\.gradle\caches\8.13\transforms\635ca86fd5374acc0131c20bfd87db98\transformed\lifecycle-runtime-compose-release\res
+com.acms.cinemeteor.app-material-release-25 C:\Users\Ahmed\.gradle\caches\8.13\transforms\676c6ab8268e39af7a30e203b2f0ed0d\transformed\material-release\res
+com.acms.cinemeteor.app-lifecycle-viewmodel-ktx-2.9.4-26 C:\Users\Ahmed\.gradle\caches\8.13\transforms\693576c443b22c45c43572df6fb8c4c8\transformed\lifecycle-viewmodel-ktx-2.9.4\res
+com.acms.cinemeteor.app-datastore-preferences-release-27 C:\Users\Ahmed\.gradle\caches\8.13\transforms\6c66456ad5879772c6cb7f8e7c1959b1\transformed\datastore-preferences-release\res
+com.acms.cinemeteor.app-core-viewtree-1.0.0-28 C:\Users\Ahmed\.gradle\caches\8.13\transforms\70be1a5f37ed8b503ce13630287e7389\transformed\core-viewtree-1.0.0\res
+com.acms.cinemeteor.app-lifecycle-viewmodel-release-29 C:\Users\Ahmed\.gradle\caches\8.13\transforms\730700cf02e5c1143f10ae6c135b405a\transformed\lifecycle-viewmodel-release\res
+com.acms.cinemeteor.app-play-services-auth-21.1.1-30 C:\Users\Ahmed\.gradle\caches\8.13\transforms\7574cce3ea83baee0ad55c20ebd1b8c9\transformed\play-services-auth-21.1.1\res
+com.acms.cinemeteor.app-material-ripple-release-31 C:\Users\Ahmed\.gradle\caches\8.13\transforms\7db49f7ec2e7e5c5e2a2d5e076ac0867\transformed\material-ripple-release\res
+com.acms.cinemeteor.app-ui-release-32 C:\Users\Ahmed\.gradle\caches\8.13\transforms\7e709e7ecfe9dc4765b715359f5a8584\transformed\ui-release\res
+com.acms.cinemeteor.app-ads-adservices-1.1.0-beta11-33 C:\Users\Ahmed\.gradle\caches\8.13\transforms\801aa058f3030fea5aaa67b94b2bc92d\transformed\ads-adservices-1.1.0-beta11\res
+com.acms.cinemeteor.app-lifecycle-livedata-core-2.9.4-34 C:\Users\Ahmed\.gradle\caches\8.13\transforms\8024e8aecbaa62c10c78c1a5eed59665\transformed\lifecycle-livedata-core-2.9.4\res
+com.acms.cinemeteor.app-lifecycle-viewmodel-compose-release-35 C:\Users\Ahmed\.gradle\caches\8.13\transforms\80c2568c088a34e31563e9a56f669c8e\transformed\lifecycle-viewmodel-compose-release\res
+com.acms.cinemeteor.app-customview-poolingcontainer-1.0.0-36 C:\Users\Ahmed\.gradle\caches\8.13\transforms\835c11ad227e4573d340851c8c0876fd\transformed\customview-poolingcontainer-1.0.0\res
+com.acms.cinemeteor.app-material-icons-core-release-37 C:\Users\Ahmed\.gradle\caches\8.13\transforms\8ca4f47ebbc02f15ad6e49c2c9e86560\transformed\material-icons-core-release\res
+com.acms.cinemeteor.app-firebase-common-22.0.1-38 C:\Users\Ahmed\.gradle\caches\8.13\transforms\8e958b079da50757ab6b26248b82174a\transformed\firebase-common-22.0.1\res
+com.acms.cinemeteor.app-lifecycle-livedata-core-ktx-2.9.4-39 C:\Users\Ahmed\.gradle\caches\8.13\transforms\a1800d8b5801259a551c3dc615b514f2\transformed\lifecycle-livedata-core-ktx-2.9.4\res
+com.acms.cinemeteor.app-ui-test-manifest-1.9.0-40 C:\Users\Ahmed\.gradle\caches\8.13\transforms\a91eb4b9a0496726f7b89b73d9f9c448\transformed\ui-test-manifest-1.9.0\res
+com.acms.cinemeteor.app-graphics-path-1.0.1-41 C:\Users\Ahmed\.gradle\caches\8.13\transforms\ad46ea7add3c0b42b207877da854d28f\transformed\graphics-path-1.0.1\res
+com.acms.cinemeteor.app-material-icons-extended-release-42 C:\Users\Ahmed\.gradle\caches\8.13\transforms\ad9c4c38ba7016371c6f2588f7b5544a\transformed\material-icons-extended-release\res
+com.acms.cinemeteor.app-activity-compose-1.11.0-43 C:\Users\Ahmed\.gradle\caches\8.13\transforms\b204863f832855b92d73e1acdc161aeb\transformed\activity-compose-1.11.0\res
+com.acms.cinemeteor.app-savedstate-release-44 C:\Users\Ahmed\.gradle\caches\8.13\transforms\b410be49d7ebfa08b996cc950f0d544d\transformed\savedstate-release\res
+com.acms.cinemeteor.app-core-1.17.0-45 C:\Users\Ahmed\.gradle\caches\8.13\transforms\b584b30c6d122cf922cb41d40e68fd3d\transformed\core-1.17.0\res
+com.acms.cinemeteor.app-activity-1.11.0-46 C:\Users\Ahmed\.gradle\caches\8.13\transforms\c26c705d74da6048b5e1a81bea7b26e1\transformed\activity-1.11.0\res
+com.acms.cinemeteor.app-navigation-common-release-47 C:\Users\Ahmed\.gradle\caches\8.13\transforms\c31d9dcb8309c83fadb12f240026b1fe\transformed\navigation-common-release\res
+com.acms.cinemeteor.app-profileinstaller-1.4.0-48 C:\Users\Ahmed\.gradle\caches\8.13\transforms\c7dfccda1bdbcc4b071f1b0944d12de4\transformed\profileinstaller-1.4.0\res
+com.acms.cinemeteor.app-lifecycle-viewmodel-savedstate-release-49 C:\Users\Ahmed\.gradle\caches\8.13\transforms\d2b4c234649147bd5be06a4d78cf48ea\transformed\lifecycle-viewmodel-savedstate-release\res
+com.acms.cinemeteor.app-ui-graphics-release-50 C:\Users\Ahmed\.gradle\caches\8.13\transforms\d4f1d3f360f7ff936aea2dfd47a4cce5\transformed\ui-graphics-release\res
+com.acms.cinemeteor.app-emoji2-views-helper-1.4.0-51 C:\Users\Ahmed\.gradle\caches\8.13\transforms\d659841a32f4ea7f54f7531ce6e4d88f\transformed\emoji2-views-helper-1.4.0\res
+com.acms.cinemeteor.app-lifecycle-process-2.9.4-52 C:\Users\Ahmed\.gradle\caches\8.13\transforms\d7c917657b9a7b2310da5ec6bf8c0ce9\transformed\lifecycle-process-2.9.4\res
+com.acms.cinemeteor.app-firebase-messaging-25.0.1-53 C:\Users\Ahmed\.gradle\caches\8.13\transforms\d8905a4725fbbc0f3b82344f6f6fd73f\transformed\firebase-messaging-25.0.1\res
+com.acms.cinemeteor.app-tracing-1.2.0-54 C:\Users\Ahmed\.gradle\caches\8.13\transforms\da9cd1cf8191f0a3492ec8f24e7dc3c8\transformed\tracing-1.2.0\res
+com.acms.cinemeteor.app-savedstate-ktx-1.3.1-55 C:\Users\Ahmed\.gradle\caches\8.13\transforms\e577f4e43a9dae81b07fd615cfa3ca1a\transformed\savedstate-ktx-1.3.1\res
+com.acms.cinemeteor.app-appcompat-resources-1.7.1-56 C:\Users\Ahmed\.gradle\caches\8.13\transforms\ed4709f19048727acf9ca280b3c6ac56\transformed\appcompat-resources-1.7.1\res
+com.acms.cinemeteor.app-core-runtime-2.2.0-57 C:\Users\Ahmed\.gradle\caches\8.13\transforms\f3be1c7a02e543903582474dfa2d4b4d\transformed\core-runtime-2.2.0\res
+com.acms.cinemeteor.app-fragment-1.5.7-58 C:\Users\Ahmed\.gradle\caches\8.13\transforms\f7f819ab8a028eafe5bdc5711269d873\transformed\fragment-1.5.7\res
+com.acms.cinemeteor.app-browser-1.4.0-59 C:\Users\Ahmed\.gradle\caches\8.13\transforms\faa119ec4bacae6dee6c2dc08be98162\transformed\browser-1.4.0\res
+com.acms.cinemeteor.app-datastore-preferences-core-release-60 C:\Users\Ahmed\.gradle\caches\8.13\transforms\feba9c23858922af64174ac872fef5e3\transformed\datastore-preferences-core-release\res
+com.acms.cinemeteor.app-savedstate-compose-release-61 C:\Users\Ahmed\.gradle\caches\8.13\transforms\ff86810ff4f925b4cba23cd163af8623\transformed\savedstate-compose-release\res
+com.acms.cinemeteor.app-pngs-62 D:\Work\Internships\DEPI-Android\Final Project\cinemeteor\app\build\generated\res\pngs\debug
+com.acms.cinemeteor.app-res-63 D:\Work\Internships\DEPI-Android\Final Project\cinemeteor\app\build\generated\res\processDebugGoogleServices
+com.acms.cinemeteor.app-resValues-64 D:\Work\Internships\DEPI-Android\Final Project\cinemeteor\app\build\generated\res\resValues\debug
+com.acms.cinemeteor.app-updated_navigation_xml-65 D:\Work\Internships\DEPI-Android\Final Project\cinemeteor\app\build\generated\updated_navigation_xml\debug
+com.acms.cinemeteor.app-packageDebugResources-66 D:\Work\Internships\DEPI-Android\Final Project\cinemeteor\app\build\intermediates\incremental\debug\packageDebugResources\merged.dir
+com.acms.cinemeteor.app-packageDebugResources-67 D:\Work\Internships\DEPI-Android\Final Project\cinemeteor\app\build\intermediates\incremental\debug\packageDebugResources\stripped.dir
+com.acms.cinemeteor.app-debug-68 D:\Work\Internships\DEPI-Android\Final Project\cinemeteor\app\build\intermediates\merged_res\debug\mergeDebugResources
+com.acms.cinemeteor.app-debug-69 D:\Work\Internships\DEPI-Android\Final Project\cinemeteor\app\src\debug\res
+com.acms.cinemeteor.app-main-70 D:\Work\Internships\DEPI-Android\Final Project\cinemeteor\app\src\main\res
