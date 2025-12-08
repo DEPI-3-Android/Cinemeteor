@@ -51,7 +51,7 @@ The **Cinemeteor** is a modern Android application that allows users to explore 
 |------------|-------------------|
 | **Ahmed Esmail** | User's profile page, About Us page, Light mode and Dark mode, Translation (English/Arabic) |
 | **Ahmed Mostafa** | TMDB API handling and testing, Similar movies feature, Reviews section in FilmActivity, Download app web page, swipe to refresh and loading screen |
-| **Ahmed Reda** | Notifications system, Splash screens |
+| **Ahmed Reda** | Notifications system, Splash screens, Onboarding Screen, Navigation Bar, Home Activity Design |
 | **Marwan Amr** | Login and Signup functionality, Login with Google, Firebase handling |
 | **Christine Medhat** | Firebase handling, Wishlist/Favorites feature, Film details page |
 | **Sara Amgad** | Firebase handling, Wishlist/Favorites feature, Film details page |
