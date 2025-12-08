@@ -52,9 +52,11 @@
     <string name="profile">الملف الشخصي</string>
     <string name="edit">تعديل</string>
     <string name="popular">أفلام شهيرة</string>
+    <string name="upcoming">أفلام قادمة</string>
     <string name="google">جوجل</string>
     <string name="no_trending">لا توجد أفلام رائجة الآن</string>
     <string name="no_popular">لا توجد أفلام شهيرة متاحة</string>
+    <string name="no_upcoming">لا توجد أفلام قادمة متاحة</string>
     <string name="create_account">إنشاء حساب</string>
     <string name="verification_sent">افتح صندوق الوارد</string>
     <string name="nonexistent_account">الحساب غير موجود. يرجى التسجيل أولاً</string>

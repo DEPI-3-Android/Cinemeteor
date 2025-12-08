@@ -46,6 +46,13 @@ interface TMDBApiService {
         @Query("page") page: Int = 1,
         @Query("language") language: String = "en-US"
     ): Response<MovieResponse>
+    
+    @GET("movie/upcoming")
+    suspend fun getUpcomingMovies(
+        @Query("api_key") apiKey: String,
+        @Query("page") page: Int = 1,
+        @Query("language") language: String = "en-US"
+    ): Response<MovieResponse>
 
     @GET("movie/{movie_id}")
     suspend fun getMovieDetails(

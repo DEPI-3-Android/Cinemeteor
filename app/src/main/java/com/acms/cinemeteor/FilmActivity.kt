@@ -414,7 +414,7 @@ fun FilmDetailsScreen(movie: Movie) {
                                     type = "text/plain"
                                     putExtra(
                                         Intent.EXTRA_TEXT,
-                                        "Check out this movie: ${currentMovie.title}\n\n${currentMovie.overview}"
+                                        "Check out this movie: ${currentMovie.title}\n\n${currentMovie.overview}\n\nCheck this movie on Cinemeteor's application\nhttps://cinemeteor-5a5e0cee6735.herokuapp.com/"
                                     )
                                 }
                                 context.startActivity(

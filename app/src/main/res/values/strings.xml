@@ -52,9 +52,11 @@
     <string name="profile">Profile</string>
     <string name="edit">Edit</string>
     <string name="popular">Popular Movies</string>
+    <string name="upcoming">Upcoming Movies</string>
     <string name="google">Google</string>
     <string name="no_trending">No trending movies available</string>
     <string name="no_popular">No popular movies available</string>
+    <string name="no_upcoming">No upcoming movies available</string>
     <string name="title_activity_favorite" translatable="false">FavoriteActivity</string>
     <string name="title_activity_film" translatable="false">FilmActivity</string>
     <string name="create_account">Create Account</string>

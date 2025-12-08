@@ -16,15 +16,17 @@ import kotlinx.coroutines.launch
 data class MovieUiState(
     val trendingMovies: List<Movie> = emptyList(),
     val popularMovies: List<Movie> = emptyList(),
+    val upcomingMovies: List<Movie> = emptyList(),
     val searchResults: List<Movie> = emptyList(),
     val isLoadingTrending: Boolean = false,
     val isLoadingPopular: Boolean = false,
+    val isLoadingUpcoming: Boolean = false,
     val isLoadingSearch: Boolean = false,
     val error: String? = null,
     val searchQuery: String = ""
 ) {
     val isLoading: Boolean
-        get() = isLoadingTrending || isLoadingPopular || isLoadingSearch
+        get() = isLoadingTrending || isLoadingPopular || isLoadingUpcoming || isLoadingSearch
 }
 
 class MovieViewModel(application: Application) : AndroidViewModel(application) {
@@ -42,13 +44,16 @@ class MovieViewModel(application: Application) : AndroidViewModel(application) {
         Log.d("MovieViewModel", "Initializing ViewModel")
         Log.d("MovieViewModel", "API Key loaded: ${if (apiKey.isNotEmpty()) "Yes (length: ${apiKey.length})" else "No"}")
         if (apiKey.isNotEmpty() && apiKey != "\"\"" && apiKey.isNotBlank()) {
-            Log.d("MovieViewModel", "Loading trending and popular movies...")
-            // Load both concurrently
+            Log.d("MovieViewModel", "Loading trending, popular, and upcoming movies...")
+            // Load all concurrently
             viewModelScope.launch {
                 loadTrendingMovies()
             }
             viewModelScope.launch {
                 loadPopularMovies()
+            }
+            viewModelScope.launch {
+                loadUpcomingMovies()
             }
         } else {
             Log.e("MovieViewModel", "API key is empty or invalid! Key: '$apiKey'")
@@ -130,6 +135,42 @@ class MovieViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
     
+    fun loadUpcomingMovies() {
+        if (apiKey.isEmpty() || apiKey == "\"\"") {
+            Log.e("MovieViewModel", "Cannot load upcoming movies: API key is empty")
+            return
+        }
+        
+        val language = getLanguage()
+        viewModelScope.launch {
+            try {
+                Log.d("MovieViewModel", "Loading upcoming movies with language: $language...")
+                _uiState.value = _uiState.value.copy(isLoadingUpcoming = true, error = null)
+                repository.getUpcomingMovies(apiKey, language)
+                    .onSuccess { movies ->
+                        Log.d("MovieViewModel", "Upcoming movies loaded successfully: ${movies.size} movies")
+                        _uiState.value = _uiState.value.copy(
+                            upcomingMovies = movies,
+                            isLoadingUpcoming = false
+                        )
+                    }
+                    .onFailure { exception ->
+                        Log.e("MovieViewModel", "Failed to load upcoming movies", exception)
+                        _uiState.value = _uiState.value.copy(
+                            isLoadingUpcoming = false,
+                            error = exception.message ?: "Failed to load upcoming movies"
+                        )
+                    }
+            } catch (e: Exception) {
+                Log.e("MovieViewModel", "Exception in loadUpcomingMovies", e)
+                _uiState.value = _uiState.value.copy(
+                    isLoadingUpcoming = false,
+                    error = "Error: ${e.message}"
+                )
+            }
+        }
+    }
+    
     fun searchMovies(query: String) {
         if (apiKey.isEmpty() || apiKey == "\"\"") {
             Log.e("MovieViewModel", "Cannot search movies: API key is empty")
@@ -179,7 +220,7 @@ class MovieViewModel(application: Application) : AndroidViewModel(application) {
     }
     
     /**
-     * Reloads all movies (trending and popular) with current language
+     * Reloads all movies (trending, popular, and upcoming) with current language
      * Clears search query and results to ensure fresh data
      */
     fun reloadMovies() {
@@ -190,9 +231,10 @@ class MovieViewModel(application: Application) : AndroidViewModel(application) {
             searchResults = emptyList(),
             error = null // Clear any previous errors
         )
-        // Reload trending and popular movies with current language
+        // Reload trending, popular, and upcoming movies with current language
         loadTrendingMovies()
         loadPopularMovies()
+        loadUpcomingMovies()
     }
 }
 

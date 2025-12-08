@@ -11,9 +11,6 @@ class LanguageChangeHelper {
 
     fun changeLanguage(context: Context, languageCode: String) {
 
-        //if needed we can set in pref.
-
-
         //version >= 13
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             context.getSystemService(LocaleManager::class.java).applicationLocales =

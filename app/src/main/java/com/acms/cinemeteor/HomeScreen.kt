@@ -99,7 +99,7 @@ fun MoviesHomeScreen(
     var isManualRefresh by remember { mutableStateOf(false) }
     
     // Pull to refresh state
-    val isRefreshing = uiState.isLoadingTrending || uiState.isLoadingPopular
+    val isRefreshing = uiState.isLoadingTrending || uiState.isLoadingPopular || uiState.isLoadingUpcoming
     val swipeRefreshState = rememberSwipeRefreshState(isRefreshing = isRefreshing)
     
     // Update manual refresh state when refreshing completes
@@ -111,11 +111,11 @@ fun MoviesHomeScreen(
 
     // Determine if we should show loading screen
     // Show loading if:
-    // 1. Initial load: loading and both lists are empty AND not searching
+    // 1. Initial load: loading and all lists are empty AND not searching
     // 2. Manual refresh: user swiped to refresh (isManualRefresh is true)
     // Don't show loading during search (only show small indicator in search section)
     val isInitialLoad = uiState.trendingMovies.isEmpty() && uiState.popularMovies.isEmpty() &&
-            uiState.searchQuery.isBlank() && uiState.searchResults.isEmpty()
+            uiState.upcomingMovies.isEmpty() && uiState.searchQuery.isBlank() && uiState.searchResults.isEmpty()
     val showLoadingScreen = (isRefreshing && isInitialLoad) || 
             (isManualRefresh && isRefreshing && uiState.searchQuery.isBlank())
 
@@ -167,7 +167,12 @@ fun MoviesHomeScreen(
                     .padding(padding)
             ) {
                 LazyColumn(
-                    contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
+                    contentPadding = PaddingValues(
+                        start = 16.dp,
+                        top = 8.dp,
+                        end = 16.dp,
+                        bottom = 32.dp
+                    ),
                     verticalArrangement = Arrangement.spacedBy(6.dp),
                     modifier = Modifier.fillMaxSize()
                 ) {
@@ -328,6 +333,58 @@ fun MoviesHomeScreen(
                             Spacer(modifier = Modifier.height(25.dp))
                         }
 
+                        // Upcoming Movies Section - Always show this section
+                        item {
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Text(
+                                    text = stringResource(R.string.upcoming),
+                                    fontWeight = FontWeight.Bold,
+                                    fontSize = 20.sp
+                                )
+                                if (uiState.isLoadingUpcoming && uiState.upcomingMovies.isEmpty()) {
+                                    CircularProgressIndicator(
+                                        modifier = Modifier.size(20.dp),
+                                        strokeWidth = 2.dp
+                                    )
+                                }
+                            }
+                            Spacer(modifier = Modifier.height(10.dp))
+                        }
+
+                        item {
+                            if (uiState.upcomingMovies.isNotEmpty()) {
+                                LazyRow(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                                    items(uiState.upcomingMovies) { movie ->
+                                        MoviePosterItem(movie = movie)
+                                    }
+                                }
+                            } else if (uiState.isLoadingUpcoming) {
+                                // Show placeholder while loading
+                                LazyRow(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                                    items(5) {
+                                        Box(
+                                            modifier = Modifier
+                                                .width(140.dp)
+                                                .height(200.dp)
+                                                .clip(RoundedCornerShape(16))
+                                        )
+                                    }
+                                }
+                            } else {
+                                // Empty state for upcoming
+                                Text(
+                                    text = stringResource(R.string.no_upcoming),
+                                    fontSize = 14.sp,
+                                    modifier = Modifier.padding(vertical = 16.dp)
+                                )
+                            }
+                            Spacer(modifier = Modifier.height(25.dp))
+                        }
+
                         // Popular Movies Section - Always show this section
                         item {
                             Row(
@@ -379,6 +436,11 @@ fun MoviesHomeScreen(
                                     modifier = Modifier.padding(vertical = 16.dp)
                                 )
                             }
+                        }
+                        
+                        // Extra bottom spacing to prevent cropping
+                        item {
+                            Spacer(modifier = Modifier.height(16.dp))
                         }
                     }
                 }

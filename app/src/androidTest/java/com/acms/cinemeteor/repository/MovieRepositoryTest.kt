@@ -165,6 +165,60 @@ class MovieRepositoryTest {
     }
     
     @Test
+    fun testGetTrendingMovies_EmptyResults() = runTest {
+        // Arrange
+        val mockResponse = MovieResponse(
+            page = 1,
+            results = emptyList(),
+            totalPages = 1,
+            totalResults = 0
+        )
+        
+        coEvery { mockApiService.getTrendingMovies(any(), any(), any()) } returns
+                Response.success(mockResponse)
+        
+        // Act
+        val result = repository.getTrendingMovies(testApiKey, testLanguage)
+        
+        // Assert
+        assertTrue(result.isSuccess)
+        assertTrue(result.getOrNull()!!.isEmpty())
+    }
+    
+    @Test
+    fun testGetTrendingMovies_ApiError() = runTest {
+        // Arrange
+        val responseBody = "Unauthorized".toResponseBody("text/plain".toMediaType())
+        coEvery { mockApiService.getTrendingMovies(any(), any(), any()) } returns
+                Response.error(401, responseBody)
+        
+        // Act
+        val result = repository.getTrendingMovies(testApiKey, testLanguage)
+        
+        // Assert
+        assertTrue(result.isFailure)
+        assertTrue(result.exceptionOrNull()!!.message!!.contains("API Error"))
+    }
+    
+    @Test
+    fun testGetTrendingMovies_NetworkException() = runTest {
+        // Arrange
+        val networkException = java.net.UnknownHostException("No internet connection")
+        coEvery { mockApiService.getTrendingMovies(any(), any(), any()) } throws networkException
+        
+        // Act
+        val result = repository.getTrendingMovies(testApiKey, testLanguage)
+        
+        // Assert
+        assertTrue(result.isFailure)
+        val exception = result.exceptionOrNull()
+        assertNotNull(exception)
+        val actualException = exception as? java.net.UnknownHostException 
+            ?: (exception as? java.lang.reflect.UndeclaredThrowableException)?.cause as? java.net.UnknownHostException
+        assertNotNull(actualException)
+    }
+    
+    @Test
     fun testSearchMovies_Success() = runTest {
         // Arrange
         val query = "Avengers"
@@ -406,6 +460,42 @@ class MovieRepositoryTest {
     }
     
     @Test
+    fun testGetNowPlayingMovies_EmptyResults() = runTest {
+        // Arrange
+        val mockResponse = MovieResponse(
+            page = 1,
+            results = emptyList(),
+            totalPages = 1,
+            totalResults = 0
+        )
+        
+        coEvery { mockApiService.getNowPlayingMovies(any(), any(), any()) } returns
+                Response.success(mockResponse)
+        
+        // Act
+        val result = repository.getNowPlayingMovies(testApiKey, testLanguage)
+        
+        // Assert
+        assertTrue(result.isSuccess)
+        assertTrue(result.getOrNull()!!.isEmpty())
+    }
+    
+    @Test
+    fun testGetNowPlayingMovies_ApiError() = runTest {
+        // Arrange
+        val responseBody = "Unauthorized".toResponseBody("text/plain".toMediaType())
+        coEvery { mockApiService.getNowPlayingMovies(any(), any(), any()) } returns
+                Response.error(401, responseBody)
+        
+        // Act
+        val result = repository.getNowPlayingMovies(testApiKey, testLanguage)
+        
+        // Assert
+        assertTrue(result.isFailure)
+        assertTrue(result.exceptionOrNull()!!.message!!.contains("API Error"))
+    }
+    
+    @Test
     fun testGetTopRatedMovies_Success() = runTest {
         // Arrange
         val mockMovies = listOf(createMockMovie(505, "Top Rated Movie", voteAverage = 9.5))
@@ -428,6 +518,134 @@ class MovieRepositoryTest {
     }
     
     @Test
+    fun testGetTopRatedMovies_EmptyResults() = runTest {
+        // Arrange
+        val mockResponse = MovieResponse(
+            page = 1,
+            results = emptyList(),
+            totalPages = 1,
+            totalResults = 0
+        )
+        
+        coEvery { mockApiService.getTopRatedMovies(any(), any(), any()) } returns
+                Response.success(mockResponse)
+        
+        // Act
+        val result = repository.getTopRatedMovies(testApiKey, testLanguage)
+        
+        // Assert
+        assertTrue(result.isSuccess)
+        assertTrue(result.getOrNull()!!.isEmpty())
+    }
+    
+    @Test
+    fun testGetTopRatedMovies_ApiError() = runTest {
+        // Arrange
+        val responseBody = "Unauthorized".toResponseBody("text/plain".toMediaType())
+        coEvery { mockApiService.getTopRatedMovies(any(), any(), any()) } returns
+                Response.error(401, responseBody)
+        
+        // Act
+        val result = repository.getTopRatedMovies(testApiKey, testLanguage)
+        
+        // Assert
+        assertTrue(result.isFailure)
+        assertTrue(result.exceptionOrNull()!!.message!!.contains("API Error"))
+    }
+    
+    @Test
+    fun testGetUpcomingMovies_Success() = runTest {
+        // Arrange
+        val mockMovies = listOf(
+            createMockMovie(601, "Upcoming Movie 1"),
+            createMockMovie(602, "Upcoming Movie 2")
+        )
+        val mockResponse = MovieResponse(
+            page = 1,
+            results = mockMovies,
+            totalPages = 5,
+            totalResults = 100
+        )
+        
+        coEvery { mockApiService.getUpcomingMovies(any(), any(), any()) } returns
+                Response.success(mockResponse)
+        
+        // Act
+        val result = repository.getUpcomingMovies(testApiKey, testLanguage)
+        
+        // Assert
+        assertTrue(result.isSuccess)
+        val movies = result.getOrNull()
+        assertNotNull(movies)
+        assertEquals(2, movies!!.size)
+        assertEquals("Upcoming Movie 1", movies[0].title)
+        assertEquals("Upcoming Movie 2", movies[1].title)
+        
+        coVerify(exactly = 1) { mockApiService.getUpcomingMovies(testApiKey, 1, testLanguage) }
+    }
+    
+    @Test
+    fun testGetUpcomingMovies_EmptyResults() = runTest {
+        // Arrange
+        val mockResponse = MovieResponse(
+            page = 1,
+            results = emptyList(),
+            totalPages = 1,
+            totalResults = 0
+        )
+        
+        coEvery { mockApiService.getUpcomingMovies(any(), any(), any()) } returns
+                Response.success(mockResponse)
+        
+        // Act
+        val result = repository.getUpcomingMovies(testApiKey, testLanguage)
+        
+        // Assert
+        assertTrue(result.isSuccess)
+        val movies = result.getOrNull()
+        assertNotNull(movies)
+        assertTrue(movies!!.isEmpty())
+    }
+    
+    @Test
+    fun testGetUpcomingMovies_ApiError() = runTest {
+        // Arrange
+        val responseBody = "Unauthorized".toResponseBody("text/plain".toMediaType())
+        coEvery { mockApiService.getUpcomingMovies(any(), any(), any()) } returns
+                Response.error(401, responseBody)
+        
+        // Act
+        val result = repository.getUpcomingMovies(testApiKey, testLanguage)
+        
+        // Assert
+        assertTrue(result.isFailure)
+        val exception = result.exceptionOrNull()
+        assertNotNull(exception)
+        assertTrue(exception!!.message!!.contains("API Error"))
+    }
+    
+    @Test
+    fun testGetUpcomingMovies_NetworkException() = runTest {
+        // Arrange
+        val networkException = java.net.UnknownHostException("No internet connection")
+        coEvery { mockApiService.getUpcomingMovies(any(), any(), any()) } throws networkException
+        
+        // Act
+        val result = repository.getUpcomingMovies(testApiKey, testLanguage)
+        
+        // Assert
+        assertTrue(result.isFailure)
+        val exception = result.exceptionOrNull()
+        assertNotNull(exception)
+        // MockK may wrap exceptions, so check the cause or message
+        val actualException = exception as? java.net.UnknownHostException 
+            ?: (exception as? java.lang.reflect.UndeclaredThrowableException)?.cause as? java.net.UnknownHostException
+        assertNotNull(actualException)
+        assertTrue(actualException!!.message?.contains("No internet connection") == true || 
+                   actualException.message?.contains("UnknownHostException") == true)
+    }
+    
+    @Test
     fun testPagination() = runTest {
         // Arrange
         val page = 2
@@ -447,6 +665,28 @@ class MovieRepositoryTest {
         // Assert
         assertTrue(result.isSuccess)
         coVerify { mockApiService.getPopularMovies(testApiKey, page, testLanguage) }
+    }
+    
+    @Test
+    fun testGetUpcomingMovies_Pagination() = runTest {
+        // Arrange
+        val page = 2
+        val mockResponse = MovieResponse(
+            page = page,
+            results = listOf(createMockMovie(700, "Upcoming Page 2 Movie")),
+            totalPages = 10,
+            totalResults = 200
+        )
+        
+        coEvery { mockApiService.getUpcomingMovies(any(), any(), any()) } returns
+                Response.success(mockResponse)
+        
+        // Act
+        val result = repository.getUpcomingMovies(testApiKey, testLanguage, page)
+        
+        // Assert
+        assertTrue(result.isSuccess)
+        coVerify { mockApiService.getUpcomingMovies(testApiKey, page, testLanguage) }
     }
     
     // Helper function to create mock movie

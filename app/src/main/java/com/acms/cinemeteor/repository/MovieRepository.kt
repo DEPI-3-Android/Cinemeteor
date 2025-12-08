@@ -101,6 +101,26 @@ class MovieRepository {
         }
     }
     
+    suspend fun getUpcomingMovies(apiKey: String, language: String = "en-US", page: Int = 1): Result<List<Movie>> {
+        return try {
+            Log.d("MovieRepository", "Fetching upcoming movies...")
+            val response = apiService.getUpcomingMovies(apiKey, page, language)
+            Log.d("MovieRepository", "Upcoming movies response: code=${response.code()}, isSuccess=${response.isSuccessful}")
+            if (response.isSuccessful) {
+                val movies = response.body()?.results ?: emptyList()
+                Log.d("MovieRepository", "Upcoming movies count: ${movies.size}")
+                Result.success(movies)
+            } else {
+                val errorMsg = "API Error: ${response.code()} - ${response.message()}"
+                Log.e("MovieRepository", errorMsg)
+                Result.failure(Exception(errorMsg))
+            }
+        } catch (e: Exception) {
+            Log.e("MovieRepository", "Exception loading upcoming movies", e)
+            Result.failure(e)
+        }
+    }
+    
     suspend fun getMovieDetails(apiKey: String, movieId: Int, language: String = "en-US"): Result<Movie> {
         return try {
             Log.d("MovieRepository", "Fetching movie details for ID: $movieId with language: $language")
