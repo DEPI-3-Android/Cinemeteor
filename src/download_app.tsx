@@ -1,7 +1,7 @@
 import "./styles.css";
 
 const downloadLink =
-  "https://play.google.com/store/apps/details?id=com.acms.cinemeteor";
+  "https://pub-2a25f91e2a274a7fbda777119d53a2a0.r2.dev/Cinemeteor.apk";
 
 const posters = [
   "Top Rated",
