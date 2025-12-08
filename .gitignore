@@ -3,4 +3,6 @@ node_modules
 .kotlin
 .idea
 .vscode
+node_modules
+dist
 
